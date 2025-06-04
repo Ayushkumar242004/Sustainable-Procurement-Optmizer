@@ -1,0 +1,9 @@
+# === BACKEND (Python) ===
+Backend/venv/
+Backend/app/__pycache__/
+Backend/app/*.pyc
+Backend/.env
+
+# Ignore all __pycache__ and .pyc files project-wide
+__pycache__/
+*.pyc
