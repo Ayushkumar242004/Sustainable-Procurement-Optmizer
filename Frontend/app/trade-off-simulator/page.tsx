@@ -215,321 +215,200 @@ export default function TradeOffSimulator() {
     }
   }
 
-  return (
+   return (
     <div className="relative pt-20 min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto p-6 space-y-8">
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-            Trade-Off Simulator & AI Assistant
+            Trade-Off Simulator
           </h1>
           <p className="text-xl text-muted-foreground">
             Adjust weights to see how supplier rankings change in real-time with AI-powered insights
           </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="simulator">Trade-Off Simulator</TabsTrigger>
-            <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="simulator" className="space-y-6">
-            <div className="grid lg:grid-cols-3 gap-6">
-              {/* Controls Panel */}
-              <div className="lg:col-span-1 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Weight Configuration</CardTitle>
-                    <CardDescription>Adjust the importance of each factor</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <label className="text-sm font-medium">Cost Efficiency</label>
-                          <span className="text-sm text-muted-foreground">{weights.cost}%</span>
-                        </div>
-                        <Slider
-                          value={[weights.cost]}
-                          onValueChange={(value) => handleWeightChange("cost", value)}
-                          max={100}
-                          step={5}
-                          className="w-full"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <label className="text-sm font-medium">Sustainability</label>
-                          <span className="text-sm text-muted-foreground">{weights.sustainability}%</span>
-                        </div>
-                        <Slider
-                          value={[weights.sustainability]}
-                          onValueChange={(value) => handleWeightChange("sustainability", value)}
-                          max={100}
-                          step={5}
-                          className="w-full"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <label className="text-sm font-medium">Risk Management</label>
-                          <span className="text-sm text-muted-foreground">{weights.risk}%</span>
-                        </div>
-                        <Slider
-                          value={[weights.risk]}
-                          onValueChange={(value) => handleWeightChange("risk", value)}
-                          max={100}
-                          step={5}
-                          className="w-full"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <label className="text-sm font-medium">Reliability</label>
-                          <span className="text-sm text-muted-foreground">{weights.reliability}%</span>
-                        </div>
-                        <Slider
-                          value={[weights.reliability]}
-                          onValueChange={(value) => handleWeightChange("reliability", value)}
-                          max={100}
-                          step={5}
-                          className="w-full"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex space-x-2">
-                      <Button onClick={resetWeights} variant="outline" size="sm">
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Reset
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Quick Presets</CardTitle>
-                    <CardDescription>Apply common weight configurations</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {tradeOffPresets.map((preset, index) => (
-                      <Button
-                        key={index}
-                        variant="outline"
-                        className="w-full justify-start"
-                        onClick={() => applyPreset(preset)}
-                      >
-                        {preset.name}
-                      </Button>
-                    ))}
-                  </CardContent>
-                </Card>
-
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    <strong>Current Strategy:</strong> {getImplications()}
-                  </AlertDescription>
-                </Alert>
-              </div>
-
-              {/* Results Panel */}
-              <div className="lg:col-span-2 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Supplier Rankings</CardTitle>
-                    <CardDescription>Rankings update automatically based on your weight preferences</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div
-                      className={`space-y-4 transition-opacity duration-300 ${isAnimating ? "opacity-50" : "opacity-100"}`}
-                    >
-                      {suppliers.map((supplier, index) => (
-                        <div
-                          key={supplier.id}
-                          className="flex items-center justify-between p-4 border rounded-lg transition-all duration-500 hover:shadow-md"
-                          style={{
-                            transform: isAnimating ? "translateY(10px)" : "translateY(0)",
-                            transition: "all 0.5s ease-in-out",
-                          }}
-                        >
-                          <div className="flex items-center space-x-4">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-2xl font-bold text-muted-foreground">#{index + 1}</span>
-                              {index === 0 && <TrendingUp className="h-5 w-5 text-green-600" />}
-                              {index === suppliers.length - 1 && <TrendingDown className="h-5 w-5 text-red-600" />}
-                            </div>
-                            <div>
-                              <h3 className="font-semibold">{supplier.name}</h3>
-                              <div className="flex space-x-2 mt-1">
-                                <Badge variant="outline" className="text-xs">
-                                  Cost: {supplier.cost}
-                                </Badge>
-                                <Badge variant="outline" className="text-xs">
-                                  ESG: {supplier.sustainability}
-                                </Badge>
-                                <Badge variant="outline" className="text-xs">
-                                  Risk: {supplier.risk}
-                                </Badge>
-                                <Badge variant="outline" className="text-xs">
-                                  Reliability: {supplier.reliability}
-                                </Badge>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-2xl font-bold">{Math.round(supplier.overallScore)}</div>
-                            <div className="text-sm text-muted-foreground">Overall Score</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Score Comparison</CardTitle>
-                    <CardDescription>Visual comparison of top suppliers</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="score" fill="#10b981" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="ai-assistant" className="space-y-6">
-            <Card className="h-[600px] flex flex-col">
-              <CardHeader className="pb-3 bg-gradient-to-r from-primary/10 to-blue-600/10 border-b">
-                <CardTitle className="flex items-center space-x-2">
-                  <Bot className="h-6 w-6 text-primary" />
-                  <span>AI Procurement Assistant</span>
-                  <Badge variant="secondary" className="ml-auto">
-                    Online
-                  </Badge>
-                </CardTitle>
-                <CardDescription>
-                  Get intelligent insights and recommendations for your procurement decisions
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent className="flex-1 flex flex-col p-0">
-                {/* Messages Area */}
-                <ScrollArea className="flex-1 p-4">
+        {/* Trade-Off Simulator Content (single tab) */}
+        <div className="space-y-6">
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Controls Panel */}
+            <div className="lg:col-span-1 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Weight Configuration</CardTitle>
+                  <CardDescription>Adjust the importance of each factor</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
                   <div className="space-y-4">
-                    {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex items-start space-x-3 animate-in slide-in-from-bottom-2 duration-300 ${
-                          message.sender === "user" ? "justify-end" : "justify-start"
-                        }`}
-                      >
-                        {message.sender === "assistant" && (
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <Bot className="h-4 w-4 text-primary" />
-                          </div>
-                        )}
-
-                        <div
-                          className={`max-w-[80%] rounded-lg px-4 py-3 ${
-                            message.sender === "user" ? "bg-primary text-primary-foreground ml-auto" : "bg-muted"
-                          }`}
-                        >
-                          <p className="text-sm">{message.content}</p>
-                          <div className="text-xs opacity-70 mt-2">
-                            {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                          </div>
-                        </div>
-
-                        {message.sender === "user" && (
-                          <div className="w-8 h-8 rounded-full bg-blue-600/10 flex items-center justify-center flex-shrink-0">
-                            <User className="h-4 w-4 text-blue-600" />
-                          </div>
-                        )}
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <label className="text-sm font-medium">Cost Efficiency</label>
+                        <span className="text-sm text-muted-foreground">{weights.cost}%</span>
                       </div>
-                    ))}
-
-                    {/* Typing Indicator */}
-                    {isTyping && (
-                      <div className="flex items-start space-x-3 animate-in slide-in-from-bottom-2 duration-300">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <Bot className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="bg-muted rounded-lg px-4 py-3">
-                          <div className="flex space-x-1">
-                            <div
-                              className="w-2 h-2 bg-primary/60 rounded-full animate-bounce"
-                              style={{ animationDelay: "0ms" }}
-                            />
-                            <div
-                              className="w-2 h-2 bg-primary/60 rounded-full animate-bounce"
-                              style={{ animationDelay: "150ms" }}
-                            />
-                            <div
-                              className="w-2 h-2 bg-primary/60 rounded-full animate-bounce"
-                              style={{ animationDelay: "300ms" }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-
-                {/* Input Area */}
-                <div className="p-4 border-t bg-muted/20">
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1 relative">
-                      <Input
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Ask me about weight optimization, supplier analysis, or procurement strategies..."
-                        className="pr-12"
+                      <Slider
+                        value={[weights.cost]}
+                        onValueChange={(value) => handleWeightChange("cost", value)}
+                        max={100}
+                        step={5}
+                        className="w-full"
                       />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={toggleVoiceInput}
-                        className={`absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 ${
-                          isListening ? "text-red-500 animate-pulse" : ""
-                        }`}
-                      >
-                        {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                      </Button>
                     </div>
-                    <Button onClick={handleSendMessage} disabled={!inputValue.trim()} className="h-10 w-10 p-0">
-                      <Send className="h-4 w-4" />
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <label className="text-sm font-medium">Sustainability</label>
+                        <span className="text-sm text-muted-foreground">{weights.sustainability}%</span>
+                      </div>
+                      <Slider
+                        value={[weights.sustainability]}
+                        onValueChange={(value) => handleWeightChange("sustainability", value)}
+                        max={100}
+                        step={5}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <label className="text-sm font-medium">Risk Management</label>
+                        <span className="text-sm text-muted-foreground">{weights.risk}%</span>
+                      </div>
+                      <Slider
+                        value={[weights.risk]}
+                        onValueChange={(value) => handleWeightChange("risk", value)}
+                        max={100}
+                        step={5}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <label className="text-sm font-medium">Reliability</label>
+                        <span className="text-sm text-muted-foreground">{weights.reliability}%</span>
+                      </div>
+                      <Slider
+                        value={[weights.reliability]}
+                        onValueChange={(value) => handleWeightChange("reliability", value)}
+                        max={100}
+                        step={5}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-2">
+                    <Button onClick={resetWeights} variant="outline" size="sm">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Reset
                     </Button>
                   </div>
+                </CardContent>
+              </Card>
 
-                  {isListening && (
-                    <div className="mt-2 text-xs text-muted-foreground flex items-center space-x-1 animate-pulse">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
-                      <span>Listening...</span>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Presets</CardTitle>
+                  <CardDescription>Apply common weight configurations</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {tradeOffPresets.map((preset, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => applyPreset(preset)}
+                    >
+                      {preset.name}
+                    </Button>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Current Strategy:</strong> {getImplications()}
+                </AlertDescription>
+              </Alert>
+            </div>
+
+            {/* Results Panel */}
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Supplier Rankings</CardTitle>
+                  <CardDescription>Rankings update automatically based on your weight preferences</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    className={`space-y-4 transition-opacity duration-300 ${isAnimating ? "opacity-50" : "opacity-100"}`}
+                  >
+                    {suppliers.map((supplier, index) => (
+                      <div
+                        key={supplier.id}
+                        className="flex items-center justify-between p-4 border rounded-lg transition-all duration-500 hover:shadow-md"
+                        style={{
+                          transform: isAnimating ? "translateY(10px)" : "translateY(0)",
+                          transition: "all 0.5s ease-in-out",
+                        }}
+                      >
+                        <div className="flex items-center space-x-4">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-2xl font-bold text-muted-foreground">#{index + 1}</span>
+                            {index === 0 && <TrendingUp className="h-5 w-5 text-green-600" />}
+                            {index === suppliers.length - 1 && <TrendingDown className="h-5 w-5 text-red-600" />}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold">{supplier.name}</h3>
+                            <div className="flex space-x-2 mt-1">
+                              <Badge variant="outline" className="text-xs">
+                                Cost: {supplier.cost}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                ESG: {supplier.sustainability}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                Risk: {supplier.risk}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                Reliability: {supplier.reliability}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold">{Math.round(supplier.overallScore)}</div>
+                          <div className="text-sm text-muted-foreground">Overall Score</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Score Comparison</CardTitle>
+                  <CardDescription>Visual comparison of top suppliers</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="score" fill="#10b981" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
       <Chatbot />
     </div>
   )
 }
+

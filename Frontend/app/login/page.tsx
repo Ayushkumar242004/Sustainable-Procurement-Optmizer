@@ -8,17 +8,16 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
-import { LogIn, Mail, Phone, User, Building, UserCheck } from "lucide-react"
+import { LogIn, Mail, User, Building, UserCheck } from "lucide-react"
 
-const roles = ["Procurement Analyst", "Vendor Manager", "Sustainability Head", "Supplier", "Other"]
+const roles = ["Procurement Analyst", "Vendor Manager", "Sustainability Head", "Supplier"]
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
-    contactName: "",
-    email: "",
-    phone: "",
-    role: "",
     companyName: "",
+    fullName: "",
+    email: "",
+    role: "",
   })
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
@@ -29,7 +28,7 @@ export default function LoginPage() {
   }
 
   const handleLogin = async () => {
-    if (!formData.contactName || !formData.email || !formData.role || !formData.companyName) {
+    if (!formData.companyName || !formData.fullName || !formData.email || !formData.role) {
       toast({
         title: "Please fill in all required fields",
         variant: "destructive",
@@ -47,10 +46,10 @@ export default function LoginPage() {
 
       // Verify credentials
       if (
-        user.contactName === formData.contactName &&
+        user.companyName === formData.companyName &&
+        user.contactName === formData.fullName &&
         user.email === formData.email &&
-        user.role === formData.role &&
-        user.companyName === formData.companyName
+        user.role === formData.role
       ) {
         // Update login status
         user.isLoggedIn = true
@@ -88,11 +87,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative pt-20 min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
-      <div className="container mx-auto px-4">
-        <Card className="max-w-md mx-auto">
+    <div className="relative pt-20 min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center px-4">
+      <div className="container mx-auto">
+        <Card className="max-w-md mx-auto animate-slide-up">
           <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-float">
               <LogIn className="h-8 w-8 text-primary" />
             </div>
             <CardTitle className="text-2xl font-heading">
@@ -102,15 +101,29 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="contactName">Full Name *</Label>
+              <Label htmlFor="companyName">Company Name *</Label>
+              <div className="relative">
+                <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="companyName"
+                  value={formData.companyName}
+                  onChange={(e) => updateFormData("companyName", e.target.value)}
+                  placeholder="Enter your company name"
+                  className="pl-10 transition-all duration-300 focus:scale-105"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name *</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="contactName"
-                  value={formData.contactName}
-                  onChange={(e) => updateFormData("contactName", e.target.value)}
+                  id="fullName"
+                  value={formData.fullName}
+                  onChange={(e) => updateFormData("fullName", e.target.value)}
                   placeholder="Enter your full name"
-                  className="pl-10"
+                  className="pl-10 transition-all duration-300 focus:scale-105"
                 />
               </div>
             </div>
@@ -125,21 +138,7 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={(e) => updateFormData("email", e.target.value)}
                   placeholder="your.email@company.com"
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => updateFormData("phone", e.target.value)}
-                  placeholder="+1 (555) 123-4567"
-                  className="pl-10"
+                  className="pl-10 transition-all duration-300 focus:scale-105"
                 />
               </div>
             </div>
@@ -147,7 +146,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <Label htmlFor="role">Your Role *</Label>
               <Select value={formData.role} onValueChange={(value) => updateFormData("role", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="transition-all duration-300 hover:shadow-md">
                   <SelectValue placeholder="Select your role" />
                 </SelectTrigger>
                 <SelectContent>
@@ -160,24 +159,10 @@ export default function LoginPage() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="companyName">Company Name *</Label>
-              <div className="relative">
-                <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="companyName"
-                  value={formData.companyName}
-                  onChange={(e) => updateFormData("companyName", e.target.value)}
-                  placeholder="Enter your company name"
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
             <Button
               onClick={handleLogin}
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
+              className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 transition-all duration-300 hover:scale-105"
             >
               {isLoading ? (
                 <>

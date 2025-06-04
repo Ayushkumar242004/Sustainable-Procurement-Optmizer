@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
@@ -27,8 +26,6 @@ import {
   TrendingUp,
   TrendingDown,
   Info,
-  Calendar,
-  ArrowLeft,
   Target,
   DollarSign,
   Shield,
@@ -39,6 +36,7 @@ import {
   Award,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { Chatbot } from "@/components/chatbot"
 
 const values = [
   {
@@ -80,6 +78,14 @@ const team = [
     role: "Head of ESG",
     bio: "Environmental scientist and ESG expert with PhD in Sustainable Business Practices.",
   },
+]
+
+const suppliers = [
+  { id: "greentech", name: "GreenTech Solutions" },
+  { id: "ecomanufacturing", name: "EcoManufacturing Co" },
+  { id: "sustainableparts", name: "SustainableParts Inc" },
+  { id: "cleanenergy", name: "CleanEnergy Corp" },
+  { id: "budgetsupply", name: "BudgetSupply Ltd" },
 ]
 
 const personas = [
@@ -293,7 +299,7 @@ const supplierSteps = [
 
 export default function Dashboard() {
   const [selectedPersona, setSelectedPersona] = useState<string | null>(null)
-  const [timeframe, setTimeframe] = useState("monthly")
+  const [selectedSupplier, setSelectedSupplier] = useState("greentech")
   const [userRole, setUserRole] = useState<string>("")
   const router = useRouter()
 
@@ -322,40 +328,49 @@ export default function Dashboard() {
     return adminSteps.find((admin) => admin.role === userRole)?.steps || []
   }
 
+  const getUserPersona = () => {
+    if (userRole === "Procurement Analyst") return personas.find((p) => p.id === "analyst")
+    if (userRole === "Vendor Manager") return personas.find((p) => p.id === "vendor")
+    if (userRole === "Sustainability Head") return personas.find((p) => p.id === "sustainability")
+    return null
+  }
+
+  const userPersona = getUserPersona()
+
   return (
     <div className="relative pt-20 min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="container mx-auto px-4 py-8 space-y-16">
+      <div className="container mx-auto px-4 py-8 space-y-8 sm:space-y-12 lg:space-y-16">
         {/* About Section */}
-        <section className="space-y-16">
+        <section className="space-y-8 sm:space-y-12 lg:space-y-16">
           {/* Hero Section */}
           <div className="text-center max-w-4xl mx-auto">
-            <Badge variant="outline" className="mb-6">
+            <Badge variant="outline" className="mb-4 sm:mb-6">
               <Globe className="h-4 w-4 mr-2" />
               About SustainPro
             </Badge>
-            <h1 className="font-heading text-5xl md:text-6xl font-bold mb-6">
+            <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6">
               Building a <span className="gradient-text">Sustainable Future</span>
-              <br />
+              <br className="hidden sm:block" />
               Through Technology
             </h1>
-            <p className="text-xl text-muted-foreground leading-relaxed">
+            <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed px-4">
               We're on a mission to revolutionize how businesses approach procurement, making sustainability and
               responsibility the cornerstone of every supply chain decision.
             </p>
           </div>
 
           {/* Vision & Mission */}
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            <div className="space-y-6 lg:space-y-8">
               <div>
                 <Badge variant="outline" className="mb-4">
                   <Target className="h-4 w-4 mr-2" />
                   Our Vision
                 </Badge>
-                <h2 className="font-heading text-4xl font-bold mb-6">
+                <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 lg:mb-6">
                   A World Where Every Business Decision <span className="gradient-text">Creates Positive Impact</span>
                 </h2>
-                <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                <p className="text-base lg:text-lg text-muted-foreground leading-relaxed mb-4 lg:mb-6">
                   We envision a future where sustainability isn't just a buzzword, but the foundation of every business
                   operation. Where supply chains are transparent, ethical, and contribute to the wellbeing of our planet
                   and society.
@@ -380,26 +395,26 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-6 lg:space-y-8">
               <div>
                 <Badge variant="outline" className="mb-4">
                   <Lightbulb className="h-4 w-4 mr-2" />
                   Our Mission
                 </Badge>
-                <h2 className="font-heading text-4xl font-bold mb-6">
+                <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 lg:mb-6">
                   Empowering Businesses with <span className="gradient-text">AI-Driven Insights</span>
                 </h2>
-                <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                <p className="text-base lg:text-lg text-muted-foreground leading-relaxed mb-4 lg:mb-6">
                   Our mission is to democratize access to sophisticated ESG analysis and sustainable procurement
                   practices. We believe that every business, regardless of size, should have the tools to make
                   responsible sourcing decisions.
                 </p>
                 <Card className="border-0 bg-gradient-to-br from-primary/5 to-blue-500/5">
-                  <CardContent className="p-6">
+                  <CardContent className="p-4 lg:p-6">
                     <div className="flex items-center space-x-4 mb-4">
-                      <Award className="h-8 w-8 text-primary" />
+                      <Award className="h-6 w-6 lg:h-8 lg:w-8 text-primary" />
                       <div>
-                        <h3 className="font-semibold text-lg">Industry Recognition</h3>
+                        <h3 className="font-semibold text-base lg:text-lg">Industry Recognition</h3>
                         <p className="text-sm text-muted-foreground">Winner of 2024 Sustainability Innovation Award</p>
                       </div>
                     </div>
@@ -413,21 +428,21 @@ export default function Dashboard() {
           </div>
 
           {/* Values */}
-          <div className="space-y-12">
+          <div className="space-y-8 lg:space-y-12">
             <div className="text-center">
               <Badge variant="outline" className="mb-4">
                 <Heart className="h-4 w-4 mr-2" />
                 Our Values
               </Badge>
-              <h2 className="font-heading text-4xl md:text-5xl font-bold mb-6">
+              <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 lg:mb-6">
                 What Drives Us <span className="gradient-text">Every Day</span>
               </h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
                 Our core values shape everything we do, from product development to client relationships.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {values.map((value, index) => {
                 const Icon = value.icon
                 return (
@@ -441,10 +456,12 @@ export default function Dashboard() {
                       >
                         <Icon className={`h-6 w-6 ${value.color}`} />
                       </div>
-                      <CardTitle className="text-xl font-heading">{value.title}</CardTitle>
+                      <CardTitle className="text-lg lg:text-xl font-heading">{value.title}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <CardDescription className="text-base leading-relaxed">{value.description}</CardDescription>
+                      <CardDescription className="text-sm lg:text-base leading-relaxed">
+                        {value.description}
+                      </CardDescription>
                     </CardContent>
                   </Card>
                 )
@@ -453,33 +470,33 @@ export default function Dashboard() {
           </div>
 
           {/* Team */}
-          <div className="space-y-12">
+          <div className="space-y-8 lg:space-y-12">
             <div className="text-center">
               <Badge variant="outline" className="mb-4">
                 <Users className="h-4 w-4 mr-2" />
                 Our Team
               </Badge>
-              <h2 className="font-heading text-4xl md:text-5xl font-bold mb-6">
+              <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 lg:mb-6">
                 Meet the <span className="gradient-text">Visionaries</span>
               </h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
                 Our diverse team of experts brings together decades of experience in sustainability, technology, and
                 business strategy.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {team.map((member, index) => (
                 <Card
                   key={index}
                   className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-0 bg-background/50 backdrop-blur-sm"
                 >
-                  <CardContent className="p-6 text-center">
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-blue-500/20 mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <Users className="h-12 w-12 text-primary" />
+                  <CardContent className="p-4 lg:p-6 text-center">
+                    <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-gradient-to-br from-primary/20 to-blue-500/20 mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <Users className="h-10 w-10 lg:h-12 lg:w-12 text-primary" />
                     </div>
-                    <h3 className="font-heading font-semibold text-lg mb-1">{member.name}</h3>
-                    <p className="text-primary font-medium mb-3">{member.role}</p>
+                    <h3 className="font-heading font-semibold text-base lg:text-lg mb-1">{member.name}</h3>
+                    <p className="text-primary font-medium mb-3 text-sm lg:text-base">{member.role}</p>
                     <p className="text-sm text-muted-foreground leading-relaxed">{member.bio}</p>
                   </CardContent>
                 </Card>
@@ -488,19 +505,19 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <Separator className="my-16" />
+        <Separator className="my-8 lg:my-16" />
 
         {/* User Guidance Section */}
-        <section className="space-y-12">
+        <section className="space-y-8 lg:space-y-12">
           <div className="text-center">
             <Badge variant="outline" className="mb-4">
               <Info className="h-4 w-4 mr-2" />
               Getting Started Guide
             </Badge>
-            <h2 className="font-heading text-4xl font-bold mb-6">
+            <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 lg:mb-6">
               Step-by-Step <span className="gradient-text">User Guidance</span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
               Follow these role-specific steps to maximize your platform experience
             </p>
           </div>
@@ -508,8 +525,8 @@ export default function Dashboard() {
           <div className="max-w-4xl mx-auto">
             <Card className="border-0 bg-gradient-to-br from-primary/5 to-blue-500/5">
               <CardHeader>
-                <CardTitle className="text-2xl flex items-center">
-                  <User className="h-6 w-6 mr-3 text-primary" />
+                <CardTitle className="text-xl lg:text-2xl flex items-center">
+                  <User className="h-5 w-5 lg:h-6 lg:w-6 mr-3 text-primary" />
                   Your Role: {userRole || "Not Set"}
                 </CardTitle>
                 <CardDescription>Customized guidance based on your role and responsibilities</CardDescription>
@@ -517,12 +534,12 @@ export default function Dashboard() {
               <CardContent>
                 <div className="space-y-4">
                   {getUserSteps().map((step, index) => (
-                    <div key={index} className="flex items-start space-x-4 p-4 rounded-lg bg-background/50">
-                      <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
+                    <div key={index} className="flex items-start space-x-4 p-3 lg:p-4 rounded-lg bg-background/50">
+                      <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs lg:text-sm flex-shrink-0">
                         {index + 1}
                       </div>
                       <div>
-                        <p className="text-sm leading-relaxed">{step}</p>
+                        <p className="text-sm lg:text-base leading-relaxed">{step}</p>
                       </div>
                     </div>
                   ))}
@@ -532,17 +549,17 @@ export default function Dashboard() {
           </div>
 
           {userRole !== "Supplier" && (
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
               {adminSteps.map((admin, index) => (
                 <Card
                   key={index}
-                  className={`border-0 ${
+                  className={`border-0 transition-all duration-300 ${
                     admin.role === userRole ? "bg-primary/10 border-primary" : "bg-muted/50"
-                  } transition-all duration-300`}
+                  }`}
                 >
                   <CardHeader>
-                    <CardTitle className="text-lg">{admin.role}</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="text-base lg:text-lg">{admin.role}</CardTitle>
+                    <CardDescription className="text-sm">
                       {admin.role === userRole ? "Your current role" : "Other admin role"}
                     </CardDescription>
                   </CardHeader>
@@ -550,10 +567,10 @@ export default function Dashboard() {
                     <div className="space-y-2">
                       {admin.steps.map((step, stepIndex) => (
                         <div key={stepIndex} className="flex items-start space-x-2">
-                          <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <div className="w-2 h-2 rounded-full bg-primary" />
+                          <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-primary" />
                           </div>
-                          <p className="text-xs leading-relaxed">{step}</p>
+                          <p className="text-xs lg:text-sm leading-relaxed">{step}</p>
                         </div>
                       ))}
                     </div>
@@ -564,98 +581,39 @@ export default function Dashboard() {
           )}
         </section>
 
-        <Separator className="my-16" />
+        <Separator className="my-8 lg:my-16" />
 
         {/* Dashboard Section */}
-        <section className="space-y-12">
-          <div className="text-center space-y-4">
-            <h2 className="text-4xl font-bold font-heading bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-              Sustainable Procurement Dashboard
-            </h2>
-            <p className="text-xl text-muted-foreground">Select your persona to view personalized KPIs and insights</p>
-          </div>
-
-          {!selectedPersona ? (
-            <div className="grid md:grid-cols-3 gap-6">
-              {personas.map((persona) => {
-                const Icon = persona.icon
-                const isAllowed = isRoleAllowed(persona.id)
-                return (
-                  <Card
-                    key={persona.id}
-                    className={`transition-all duration-500 border-2 ${
-                      isAllowed
-                        ? "cursor-pointer hover:scale-105 hover:shadow-xl hover:border-primary/50 group animate-fade-in"
-                        : "opacity-50 cursor-not-allowed"
-                    }`}
-                    onClick={() => isAllowed && setSelectedPersona(persona.id)}
-                  >
-                    <CardHeader className="text-center">
-                      <div
-                        className={`w-20 h-20 rounded-full bg-gradient-to-r ${persona.gradient} flex items-center justify-center mx-auto mb-4 ${
-                          isAllowed ? "group-hover:scale-110" : ""
-                        } transition-transform duration-300 shadow-lg`}
-                      >
-                        <Icon className="h-10 w-10 text-white" />
-                      </div>
-                      <CardTitle className="text-xl font-heading">{persona.title}</CardTitle>
-                      <CardDescription className="text-base">{persona.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Button
-                        className={`w-full transition-colors duration-300 ${
-                          isAllowed ? "group-hover:bg-primary/90" : ""
-                        }`}
-                        variant="outline"
-                        disabled={!isAllowed}
-                      >
-                        {isAllowed ? "View Dashboard" : "Access Restricted"}
-                        {isAllowed && <TrendingUp className="ml-2 h-4 w-4" />}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )
-              })}
+        {userRole !== "Supplier" && userPersona && (
+          <section className="space-y-8 lg:space-y-12">
+            <div className="text-center space-y-4">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-heading bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                {userPersona.title} Dashboard
+              </h2>
+              <p className="text-lg sm:text-xl text-muted-foreground px-4">
+                Your personalized KPIs and performance insights
+              </p>
             </div>
-          ) : (
-            <div className="space-y-6 animate-slide-up">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => setSelectedPersona(null)}
-                    className="hover:scale-105 transition-transform"
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Personas
-                  </Button>
-                  <div className="flex items-center space-x-3">
-                    <div
-                      className={`w-12 h-12 rounded-full bg-gradient-to-r ${selectedPersonaData?.gradient} flex items-center justify-center shadow-lg`}
-                    >
-                      {selectedPersonaData &&
-                        React.createElement(selectedPersonaData.icon, { className: "h-6 w-6 text-white" })}
-                    </div>
-                    <h3 className="text-3xl font-bold font-heading">{selectedPersonaData?.title} Dashboard</h3>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <Select value={timeframe} onValueChange={setTimeframe}>
-                    <SelectTrigger className="w-40">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="yearly">Yearly</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {selectedPersonaData?.kpis.map((kpi, index) => {
+            {/* Supplier Selection */}
+            <div className="flex justify-center">
+              <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+                <SelectTrigger className="w-full max-w-64">
+                  <SelectValue placeholder="Select a supplier" />
+                </SelectTrigger>
+                <SelectContent>
+                  {suppliers.map((supplier) => (
+                    <SelectItem key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-6 animate-slide-up">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                {userPersona.kpis.map((kpi, index) => {
                   const KpiIcon = kpi.icon
                   return (
                     <Card
@@ -666,13 +624,13 @@ export default function Dashboard() {
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
-                            <KpiIcon className="h-5 w-5 text-primary" />
-                            <CardTitle className="text-sm font-medium">{kpi.name}</CardTitle>
+                            <KpiIcon className="h-4 w-4 lg:h-5 lg:w-5 text-primary" />
+                            <CardTitle className="text-sm lg:text-base font-medium">{kpi.name}</CardTitle>
                           </div>
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger>
-                                <Info className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                                <Info className="h-3 w-3 lg:h-4 lg:w-4 text-muted-foreground hover:text-primary transition-colors" />
                               </TooltipTrigger>
                               <TooltipContent className="max-w-xs">
                                 <p className="text-sm">{kpi.description}</p>
@@ -687,17 +645,17 @@ export default function Dashboard() {
                       <CardContent>
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <span className="text-3xl font-bold font-heading">{kpi.value}</span>
+                            <span className="text-2xl lg:text-3xl font-bold font-heading">{kpi.value}</span>
                             <Badge
                               variant={
                                 kpi.trend === "up" ? "default" : kpi.trend === "down" ? "destructive" : "secondary"
                               }
-                              className="animate-pulse-slow"
+                              className="animate-pulse-slow text-xs"
                             >
                               {kpi.trend === "up" ? (
-                                <TrendingUp className="h-3 w-3 mr-1" />
+                                <TrendingUp className="h-2 w-2 lg:h-3 lg:w-3 mr-1" />
                               ) : kpi.trend === "down" ? (
-                                <TrendingDown className="h-3 w-3 mr-1" />
+                                <TrendingDown className="h-2 w-2 lg:h-3 lg:w-3 mr-1" />
                               ) : null}
                               {kpi.trend}
                             </Badge>
@@ -716,18 +674,18 @@ export default function Dashboard() {
                 })}
               </div>
 
-              <div className="grid lg:grid-cols-2 gap-6">
+              <div className="grid lg:grid-cols-2 gap-4 lg:gap-6">
                 <Card className="animate-fade-in">
                   <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <TrendingUp className="h-5 w-5 mr-2 text-primary" />
+                    <CardTitle className="flex items-center text-lg lg:text-xl">
+                      <TrendingUp className="h-4 w-4 lg:h-5 lg:w-5 mr-2 text-primary" />
                       Performance Trend
                     </CardTitle>
-                    <CardDescription>6-month performance overview ({timeframe})</CardDescription>
+                    <CardDescription>6-month performance overview</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={selectedPersonaData?.chartData}>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <LineChart data={userPersona.chartData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="month" />
                         <YAxis />
@@ -750,7 +708,7 @@ export default function Dashboard() {
                         />
                       </LineChart>
                     </ResponsiveContainer>
-                    <div className="flex justify-center space-x-6 mt-4">
+                    <div className="flex justify-center space-x-4 lg:space-x-6 mt-4">
                       <div className="flex items-center space-x-2">
                         <div className="w-3 h-3 bg-green-600 rounded-full" />
                         <span className="text-sm">Actual Performance</span>
@@ -765,21 +723,21 @@ export default function Dashboard() {
 
                 <Card className="animate-fade-in">
                   <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Leaf className="h-5 w-5 mr-2 text-primary" />
+                    <CardTitle className="flex items-center text-lg lg:text-xl">
+                      <Leaf className="h-4 w-4 lg:h-5 lg:w-5 mr-2 text-primary" />
                       ESG Score Breakdown
                     </CardTitle>
                     <CardDescription>Environmental, Social & Governance metrics</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
+                    <ResponsiveContainer width="100%" height={250}>
                       <PieChart>
                         <Pie
                           data={pieData}
                           cx="50%"
                           cy="50%"
-                          innerRadius={60}
-                          outerRadius={120}
+                          innerRadius={50}
+                          outerRadius={100}
                           paddingAngle={5}
                           dataKey="value"
                         >
@@ -790,11 +748,11 @@ export default function Dashboard() {
                         <RechartsTooltip />
                       </PieChart>
                     </ResponsiveContainer>
-                    <div className="flex justify-center space-x-4 mt-4">
+                    <div className="flex justify-center space-x-2 lg:space-x-4 mt-4 flex-wrap">
                       {pieData.map((entry, index) => (
-                        <div key={index} className="flex items-center space-x-2">
+                        <div key={index} className="flex items-center space-x-2 mb-2">
                           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
-                          <span className="text-sm">
+                          <span className="text-xs lg:text-sm">
                             {entry.name}: {entry.value}%
                           </span>
                         </div>
@@ -807,21 +765,21 @@ export default function Dashboard() {
               {/* Legend */}
               <Card className="animate-fade-in">
                 <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Info className="h-5 w-5 mr-2 text-primary" />
+                  <CardTitle className="flex items-center text-lg lg:text-xl">
+                    <Info className="h-4 w-4 lg:h-5 lg:w-5 mr-2 text-primary" />
                     KPI Legend & Explanations
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {selectedPersonaData?.kpis.map((kpi, index) => (
+                  <div className="grid sm:grid-cols-2 gap-4 lg:gap-6">
+                    {userPersona.kpis.map((kpi, index) => (
                       <div key={index} className="flex items-start space-x-3 p-3 rounded-lg bg-muted/50">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          {React.createElement(kpi.icon, { className: "h-4 w-4 text-primary" })}
+                        <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          {React.createElement(kpi.icon, { className: "h-3 w-3 lg:h-4 lg:w-4 text-primary" })}
                         </div>
                         <div>
-                          <h4 className="font-medium text-sm">{kpi.name}</h4>
-                          <p className="text-xs text-muted-foreground mt-1">{kpi.description}</p>
+                          <h4 className="font-medium text-sm lg:text-base">{kpi.name}</h4>
+                          <p className="text-xs lg:text-sm text-muted-foreground mt-1">{kpi.description}</p>
                         </div>
                       </div>
                     ))}
@@ -829,9 +787,10 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             </div>
-          )}
-        </section>
+          </section>
+        )}
       </div>
+      <Chatbot />
     </div>
   )
 }

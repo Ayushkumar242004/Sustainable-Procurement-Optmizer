@@ -40,8 +40,11 @@ import {
   Download,
   Calendar,
   Filter,
+  Bot,
 } from "lucide-react"
 import { Chatbot } from "@/components/chatbot"
+import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
 
 const validationSteps = [
   { id: 1, name: "Data Collection", status: "completed", duration: "2 minutes" },
@@ -152,6 +155,41 @@ export default function AssessmentPage() {
   const [isValidating, setIsValidating] = useState(false)
   const [activeTab, setActiveTab] = useState("validation")
 
+  const [aiInputs, setAiInputs] = useState({
+    environmental: "",
+    social: "",
+    governance: "",
+    risk: "",
+    cost: "",
+    reliability: "",
+  })
+  const [aiAnalysis, setAiAnalysis] = useState({
+    environmental: "",
+    social: "",
+    governance: "",
+    risk: "",
+    cost: "",
+    reliability: "",
+  })
+  const [isAiLoading, setIsAiLoading] = useState(false)
+
+  // Simulate AI analysis (replace with real API call as needed)
+  const handleAiAnalyze = (factor: keyof typeof aiInputs) => {
+    setIsAiLoading(true)
+    setTimeout(() => {
+      setAiAnalysis((prev) => ({
+        ...prev,
+        [factor]: `AI Optimization Suggestion for ${factor.charAt(0).toUpperCase() + factor.slice(1)}: 
+- Apply advanced supplier screening using ML models.
+- Use predictive analytics for risk mitigation.
+- Optimize cost by dynamic sourcing and contract renegotiation.
+- Enhance reliability with real-time monitoring and AI-driven alerts.
+- Improve ESG scores by targeting high-impact initiatives recommended by AI.`,
+      }))
+      setIsAiLoading(false)
+    }, 1200)
+  }
+
   useEffect(() => {
     const completedSteps = validationSteps.filter((step) => step.status === "completed").length
     const inProgressSteps = validationSteps.filter((step) => step.status === "in-progress").length
@@ -204,14 +242,31 @@ export default function AssessmentPage() {
           </Select>
         </div>
 
+    
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="validation">Validation</TabsTrigger>
-            <TabsTrigger value="scoring">Scoring</TabsTrigger>
-            <TabsTrigger value="benchmarking">Benchmarking</TabsTrigger>
-            <TabsTrigger value="risk">Risk Analysis</TabsTrigger>
-            <TabsTrigger value="reports">Reports</TabsTrigger>
+          {/* Reduce tab width so all 6 tabs fit in a line */}
+          <TabsList className="flex w-full justify-between gap-2">
+            <TabsTrigger value="validation" className="flex-1 min-w-5 px-2 py-1 text-xs">
+              Validation
+            </TabsTrigger>
+            <TabsTrigger value="scoring" className="flex-1 min-w-5 px-2 py-1 text-xs">
+              Scoring
+            </TabsTrigger>
+            <TabsTrigger value="benchmarking" className="flex-1 min-w-5 px-2 py-1 text-xs">
+              Benchmarking
+            </TabsTrigger>
+            <TabsTrigger value="risk" className="flex-1 min-w-5 px-2 py-1 text-xs">
+              Risk Analysis
+            </TabsTrigger>
+            <TabsTrigger value="ai" className="flex-1 min-w-5 px-2 py-1 text-xs">
+              AI Analysis
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="flex-1 min-w-5 px-2 py-1 text-xs">
+              Reports
+            </TabsTrigger>
           </TabsList>
+          
+
 
           <TabsContent value="validation" className="space-y-6">
             <Card>
@@ -298,82 +353,57 @@ export default function AssessmentPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="scoring" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl flex items-center">
-                    <Target className="h-6 w-6 mr-3 text-primary" />
-                    Scoring Weight Model
-                  </CardTitle>
-                  <CardDescription>How different ESG factors contribute to the overall score</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={scoringWeights}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={120}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {scoringWeights.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="grid grid-cols-2 gap-4 mt-4">
-                    {scoringWeights.map((weight, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: weight.color }} />
-                        <span className="text-sm">
-                          {weight.name}: {weight.value}%
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl flex items-center">
-                    <BarChart3 className="h-6 w-6 mr-3 text-primary" />
-                    Score Derivation
-                  </CardTitle>
-                  <CardDescription>Detailed breakdown of how scores are calculated</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RadarChart data={radarData}>
-                      <PolarGrid />
-                      <PolarAngleAxis dataKey="subject" />
-                      <PolarRadiusAxis angle={90} domain={[0, 100]} />
-                      <Radar
-                        name="Score"
-                        dataKey="A"
-                        stroke="#10b981"
-                        fill="#10b981"
-                        fillOpacity={0.3}
-                        strokeWidth={2}
-                      />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Info className="h-4 w-4 text-blue-600" />
-                      <span>Scores are weighted based on industry standards and best practices</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+         
+<TabsContent value="scoring" className="space-y-6">
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-2xl flex items-center">
+        <Target className="h-6 w-6 mr-3 text-primary" />
+        Scoring Weight Model
+      </CardTitle>
+      <CardDescription>How different ESG factors contribute to the overall score</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <div className="flex flex-col items-center">
+        <ResponsiveContainer width="100%" height={400}>
+          <PieChart>
+            <Pie
+              data={scoringWeights}
+              cx="50%"
+              cy="50%"
+              innerRadius={80}
+              outerRadius={160}
+              paddingAngle={5}
+              dataKey="value"
+              label={({ name, percent }) =>
+                `${name}: ${(percent * 100).toFixed(0)}%`
+              }
+            >
+              {scoringWeights.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="grid grid-cols-2 gap-4 mt-6">
+          {scoringWeights.map((weight, index) => (
+            <div key={index} className="flex items-center space-x-2">
+              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: weight.color }} />
+              <span className="text-sm">
+                {weight.name}: {weight.value}%
+              </span>
             </div>
-          </TabsContent>
+          ))}
+        </div>
+        <Button className="mt-8" variant="default">
+          Show Overall Score
+        </Button>
+      </div>
+    </CardContent>
+  </Card>
+</TabsContent>
+
 
           <TabsContent value="benchmarking" className="space-y-6">
             <Card>
@@ -464,6 +494,203 @@ export default function AssessmentPage() {
               </CardContent>
             </Card>
           </TabsContent>
+
+             <TabsContent value="ai" className="space-y-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl flex items-center">
+                  <Bot className="h-6 w-6 mr-3 text-primary" />
+                  AI Analysis & Optimization
+                </CardTitle>
+                <CardDescription>
+                  Enter your scores for each factor and let AI suggest optimization techniques.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-8">
+                  {/* Environmental */}
+                  <div>
+                    <h3 className="font-semibold mb-2">Environmental</h3>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      placeholder="Enter Environmental Score"
+                      value={aiInputs.environmental}
+                      onChange={(e) =>
+                        setAiInputs((prev) => ({ ...prev, environmental: e.target.value }))
+                      }
+                      className="mb-2"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleAiAnalyze("environmental")}
+                      disabled={isAiLoading || !aiInputs.environmental}
+                    >
+                      Analyze
+                    </Button>
+                    <Textarea
+                      className="mt-2"
+                      rows={4}
+                      value={aiAnalysis.environmental}
+                      readOnly
+                      placeholder="AI optimization suggestions will appear here."
+                    />
+                  </div>
+                  {/* Social */}
+                  <div>
+                    <h3 className="font-semibold mb-2">Social</h3>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      placeholder="Enter Social Score"
+                      value={aiInputs.social}
+                      onChange={(e) =>
+                        setAiInputs((prev) => ({ ...prev, social: e.target.value }))
+                      }
+                      className="mb-2"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleAiAnalyze("social")}
+                      disabled={isAiLoading || !aiInputs.social}
+                    >
+                      Analyze
+                    </Button>
+                    <Textarea
+                      className="mt-2"
+                      rows={4}
+                      value={aiAnalysis.social}
+                      readOnly
+                      placeholder="AI optimization suggestions will appear here."
+                    />
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-8 mt-8">
+                  {/* Governance */}
+                  <div>
+                    <h3 className="font-semibold mb-2">Governance</h3>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      placeholder="Enter Governance Score"
+                      value={aiInputs.governance}
+                      onChange={(e) =>
+                        setAiInputs((prev) => ({ ...prev, governance: e.target.value }))
+                      }
+                      className="mb-2"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleAiAnalyze("governance")}
+                      disabled={isAiLoading || !aiInputs.governance}
+                    >
+                      Analyze
+                    </Button>
+                    <Textarea
+                      className="mt-2"
+                      rows={4}
+                      value={aiAnalysis.governance}
+                      readOnly
+                      placeholder="AI optimization suggestions will appear here."
+                    />
+                  </div>
+                  {/* Risk Factor */}
+                  <div>
+                    <h3 className="font-semibold mb-2">Risk Factor</h3>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      placeholder="Enter Risk Factor Score"
+                      value={aiInputs.risk}
+                      onChange={(e) =>
+                        setAiInputs((prev) => ({ ...prev, risk: e.target.value }))
+                      }
+                      className="mb-2"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleAiAnalyze("risk")}
+                      disabled={isAiLoading || !aiInputs.risk}
+                    >
+                      Analyze
+                    </Button>
+                    <Textarea
+                      className="mt-2"
+                      rows={4}
+                      value={aiAnalysis.risk}
+                      readOnly
+                      placeholder="AI optimization suggestions will appear here."
+                    />
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-8 mt-8">
+                  {/* Cost Efficiency */}
+                  <div>
+                    <h3 className="font-semibold mb-2">Cost Efficiency</h3>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      placeholder="Enter Cost Efficiency Score"
+                      value={aiInputs.cost}
+                      onChange={(e) =>
+                        setAiInputs((prev) => ({ ...prev, cost: e.target.value }))
+                      }
+                      className="mb-2"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleAiAnalyze("cost")}
+                      disabled={isAiLoading || !aiInputs.cost}
+                    >
+                      Analyze
+                    </Button>
+                    <Textarea
+                      className="mt-2"
+                      rows={4}
+                      value={aiAnalysis.cost}
+                      readOnly
+                      placeholder="AI optimization suggestions will appear here."
+                    />
+                  </div>
+                  {/* Reliability */}
+                  <div>
+                    <h3 className="font-semibold mb-2">Reliability</h3>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      placeholder="Enter Reliability Score"
+                      value={aiInputs.reliability}
+                      onChange={(e) =>
+                        setAiInputs((prev) => ({ ...prev, reliability: e.target.value }))
+                      }
+                      className="mb-2"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleAiAnalyze("reliability")}
+                      disabled={isAiLoading || !aiInputs.reliability}
+                    >
+                      Analyze
+                    </Button>
+                    <Textarea
+                      className="mt-2"
+                      rows={4}
+                      value={aiAnalysis.reliability}
+                      readOnly
+                      placeholder="AI optimization suggestions will appear here."
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
 
           <TabsContent value="reports" className="space-y-6">
             {/* KPI Overview */}

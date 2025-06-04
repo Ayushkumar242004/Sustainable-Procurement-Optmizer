@@ -27,6 +27,7 @@ const suppliers = [
     location: "Berlin, Germany",
     category: "Technology",
     esgScore: 92,
+    overallScore: 89,
     certifications: ["ISO 14001", "B-Corp", "OHSAS 18001"],
     joinDate: "2022-03-15",
     status: "Active",
@@ -39,6 +40,7 @@ const suppliers = [
     location: "Amsterdam, Netherlands",
     category: "Manufacturing",
     esgScore: 87,
+    overallScore: 89,
     certifications: ["ISO 14001", "OHSAS 18001"],
     joinDate: "2021-11-20",
     status: "Active",
@@ -51,6 +53,7 @@ const suppliers = [
     location: "Austin, USA",
     category: "Components",
     esgScore: 78,
+    overallScore: 90,
     certifications: ["ISO 9001"],
     joinDate: "2023-01-10",
     status: "Under Review",
@@ -63,6 +66,7 @@ const suppliers = [
     location: "Copenhagen, Denmark",
     category: "Energy",
     esgScore: 85,
+    overallScore: 91,
     certifications: ["ISO 14001", "ISO 50001"],
     joinDate: "2022-07-08",
     status: "Active",
@@ -75,6 +79,7 @@ const suppliers = [
     location: "Manchester, UK",
     category: "General Supplies",
     esgScore: 65,
+    overallScore: 91,
     certifications: ["ISO 9001"],
     joinDate: "2023-05-22",
     status: "Active",
@@ -143,6 +148,7 @@ export default function SupplierDirectory() {
 
   return (
     <div className="container mx-auto p-6 space-y-8">
+      <div className="h-10" /> 
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
           Supplier Directory
@@ -199,7 +205,7 @@ export default function SupplierDirectory() {
       </Card>
 
       {/* Supplier Table */}
-      <Card>
+     <Card>
         <CardHeader>
           <CardTitle>Suppliers ({filteredSuppliers.length})</CardTitle>
           <CardDescription>Click on any supplier to view detailed information</CardDescription>
@@ -212,6 +218,7 @@ export default function SupplierDirectory() {
                 <TableHead>Location</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>ESG Score</TableHead>
+                <TableHead>Overall Score</TableHead> {/* New column header */}
                 <TableHead>Certifications</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -237,6 +244,9 @@ export default function SupplierDirectory() {
                     <Badge variant={getScoreBadgeVariant(supplier.esgScore)}>{supplier.esgScore}/100</Badge>
                   </TableCell>
                   <TableCell>
+                    <Badge variant="secondary">{supplier.overallScore}/100</Badge>
+                  </TableCell>
+                  <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {supplier.certifications.slice(0, 2).map((cert, i) => (
                         <Badge key={i} variant="outline" className="text-xs">
@@ -253,6 +263,7 @@ export default function SupplierDirectory() {
                   <TableCell>
                     <Badge variant={getStatusBadgeVariant(supplier.status)}>{supplier.status}</Badge>
                   </TableCell>
+                  
                   <TableCell>
                     <Dialog>
                       <DialogTrigger asChild>

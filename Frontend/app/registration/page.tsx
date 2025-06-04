@@ -461,6 +461,7 @@ export default function RegistrationPage() {
             </Card>
           )}
 
+
           {/* Navigation */}
           <div className="flex justify-between items-center mt-8">
             <Button variant="outline" onClick={prevStep} disabled={step === 1}>
@@ -494,6 +495,20 @@ export default function RegistrationPage() {
               </Button>
             )}
           </div>
+
+          {/* Go to Login Button */}
+          <div className="flex justify-center mt-4">
+            <Button
+              variant="ghost"
+              onClick={() => router.push("/login")}
+              className="text-primary underline"
+            >
+              Go to Login
+            </Button>
+          </div>
+
+
+
         </div>
       </div>
     </div>
