@@ -1,27 +1,9 @@
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, EmailStr, Field
 from app.database import db
 from app.auth.jwt import create_jwt_token
 from app.auth.auth_handler import hash_password, verify_password
-
+from app.schemas.auth_schemas import LoginRequest , RegistrationRequest
 router = APIRouter()
-
-# ----- SCHEMAS -----
-
-class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str
-
-class RegistrationRequest(BaseModel):
-    company_name: str
-    industry: str
-    location: str
-    employee_count: int = Field(..., ge=1)
-    fullname: str
-    email: EmailStr
-    password: str
-    role: str  # No strict validation
-
 
 # ----- ROUTES -----
 
