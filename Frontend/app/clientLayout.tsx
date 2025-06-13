@@ -26,20 +26,20 @@ export default function ClientLayout({
   const router = useRouter()
   const pathname = usePathname()
 
-  useEffect(() => {
-    // Check if user is registered/logged in
-    const userData = localStorage.getItem("userData")
-    const publicPages = ["/registration", "/login", "/logout"]
+  // useEffect(() => {
+  //   // Check if user is registered/logged in
+  //   const userData = localStorage.getItem("userData")
+  //   const publicPages = ["/registration", "/login", "/logout"]
 
-    if (!userData && !publicPages.includes(pathname)) {
-      router.push("/registration")
-    } else if (userData) {
-      const user = JSON.parse(userData)
-      if (!user.isLoggedIn && !publicPages.includes(pathname)) {
-        router.push("/login")
-      }
-    }
-  }, [router, pathname])
+  //   if (!userData && !publicPages.includes(pathname)) {
+  //     router.push("/registration")
+  //   } else if (userData) {
+  //     const user = JSON.parse(userData)
+  //     if (!user.isLoggedIn && !publicPages.includes(pathname)) {
+  //       router.push("/login")
+  //     }
+  //   }
+  // }, [router, pathname])
 
   return (
     <html lang="en" suppressHydrationWarning>

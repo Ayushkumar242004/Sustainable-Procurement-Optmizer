@@ -11,93 +11,259 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
-import { Upload, CheckCircle, Leaf, Users, Shield, Factory, Award, FileText } from "lucide-react"
+import { Upload, CheckCircle, Leaf, Users, Shield, Factory, Award, FileText, ChevronDown, ChevronUp, HelpCircle } from "lucide-react"
 import { Chatbot } from "@/components/chatbot"
+import { useEffect } from "react"
+import { useRouter } from "next/router";
 
-const certifications = [
-  "ISO 14001 (Environmental Management)",
-  "ISO 45001 (Occupational Health & Safety)",
-  "ISO 9001 (Quality Management)",
-  "ISO 50001 (Energy Management)",
-  "B-Corp Certification",
-  "Fair Trade Certified",
-  "OHSAS 18001",
-  "SA8000 (Social Accountability)",
+const sections = [
+  { id: "company", title: "Company Information", icon: Factory, description: "Basic company details" },
+  { id: "environmental", title: "Environmental Data", icon: Leaf, description: "Emissions and resource usage" },
+  { id: "social", title: "Social Responsibility", icon: Users, description: "Employee and community metrics" },
+  { id: "governance", title: "Governance", icon: Shield, description: "Corporate governance metrics" },
+  { id: "documents", title: "Documents", icon: FileText, description: "Supporting documentation" }
 ]
 
 export default function DataSubmissionPage() {
+
+
+  const [uploadedFiles, setUploadedFiles] = useState<{ esgDocument?: File }>({})
+  const [companyName, setCompanyName] = useState("");
+  const [reportingYear, setReportingYear] = useState("");
+  const [companyGhgEmissionsPerUnitRevenue, setCompanyGhgEmissionsPerUnitRevenue] = useState("");
+  const [companyEnergyConsumptionPerUnitOutput, setCompanyEnergyConsumptionPerUnitOutput] = useState("");
+  const [companyWaterWithdrawalPerUnitOutput, setCompanyWaterWithdrawalPerUnitOutput] = useState("");
+  const [amountWasteRecycled, setAmountWasteRecycled] = useState("");
+  const [totalWasteGenerated, setTotalWasteGenerated] = useState("");
+  const [environmentalFinesPenaltyWeight, setEnvironmentalFinesPenaltyWeight] = useState("");
+  const [renewableEnergyConsumption, setRenewableEnergyConsumption] = useState("");
+  const [totalEnergyConsumption, setTotalEnergyConsumption] = useState("");
+  const [biodiversityImpactScore, setBiodiversityImpactScore] = useState("");
+  const [climateRiskMitigationMeasuresImplemented, setClimateRiskMitigationMeasuresImplemented] = useState("");
+  const [totalApplicableMeasures, setTotalApplicableMeasures] = useState("");
+  const [employeeTurnoverRate, setEmployeeTurnoverRate] = useState("");
+  const [companyInjuryRate, setCompanyInjuryRate] = useState("");
+  const [numberDiverseEmployees, setNumberDiverseEmployees] = useState("");
+  const [totalEmployees, setTotalEmployees] = useState("");
+  const [amountInvestedCommunityPrograms, setAmountInvestedCommunityPrograms] = useState("");
+  const [totalRevenue, setTotalRevenue] = useState("");
+  const [netPromoterScore, setNetPromoterScore] = useState("");
+  const [numberReportedViolationsSeverityWeight, setNumberReportedViolationsSeverityWeight] = useState("");
+  const [avgTrainingHoursPerEmployee, setAvgTrainingHoursPerEmployee] = useState("");
+  const [numberIndependentDirectors, setNumberIndependentDirectors] = useState("");
+  const [totalNumberDirectors, setTotalNumberDirectors] = useState("");
+  const [ceoPayRatio, setCeoPayRatio] = useState("");
+  const [numberIndependentAuditCommitteeMembers, setNumberIndependentAuditCommitteeMembers] = useState("");
+  const [totalAuditCommitteeMembers, setTotalAuditCommitteeMembers] = useState("");
+  const [numberShareholderFriendlyPoliciesImplemented, setNumberShareholderFriendlyPoliciesImplemented] = useState("");
+  const [totalNumberEvaluatedPolicies, setTotalNumberEvaluatedPolicies] = useState("");
+  const [numberDisclosedEsgMetrics, setNumberDisclosedEsgMetrics] = useState("");
+  const [totalNumberRelevantEsgMetrics, setTotalNumberRelevantEsgMetrics] = useState("");
+  const [numberCorruptionIncidentsSeverityWeight, setNumberCorruptionIncidentsSeverityWeight] = useState("");
+  const [numberDisclosedTaxJurisdictions, setNumberDisclosedTaxJurisdictions] = useState("");
+  const [totalNumberOperatingJurisdictions, setTotalNumberOperatingJurisdictions] = useState("");
+
+useEffect(() => {
+  const prefillFromLocalStorage = () => {
+    const stored = localStorage.getItem("esg_upload_result");
+    if (!stored) return;
+
+    let parsed: any;
+    try {
+      parsed = JSON.parse(stored); // This will be a JS object, not a string
+    } catch (err) {
+      console.warn("Failed to parse stored JSON:", err);
+      return;
+    }
+
+    try {
+      setCompanyName(parsed.company_name || "");
+      setReportingYear(parsed.reporting_year?.toString() || "");
+      setCompanyGhgEmissionsPerUnitRevenue(parsed.company_ghg_emissions_per_unit_revenue?.toString() || "");
+      setCompanyEnergyConsumptionPerUnitOutput(parsed.company_energy_consumption_per_unit_output?.toString() || "");
+      setCompanyWaterWithdrawalPerUnitOutput(parsed.company_water_withdrawal_per_unit_output?.toString() || "");
+      setAmountWasteRecycled(parsed.amount_waste_recycled?.toString() || "");
+      setTotalWasteGenerated(parsed.total_waste_generated?.toString() || "");
+      setEnvironmentalFinesPenaltyWeight(parsed.environmental_fines_penalty_weight?.toString() || "");
+      setRenewableEnergyConsumption(parsed.renewable_energy_consumption?.toString() || "");
+      setTotalEnergyConsumption(parsed.total_energy_consumption?.toString() || "");
+      setBiodiversityImpactScore(parsed.biodiversity_impact_score?.toString() || "");
+      setClimateRiskMitigationMeasuresImplemented(parsed.climate_risk_mitigation_measures_implemented?.toString() || "");
+      setTotalApplicableMeasures(parsed.total_applicable_measures?.toString() || "");
+      setEmployeeTurnoverRate(parsed.employee_turnover_rate?.toString() || "");
+      setCompanyInjuryRate(parsed.company_injury_rate?.toString() || "");
+      setNumberDiverseEmployees(parsed.number_diverse_employees?.toString() || "");
+      setTotalEmployees(parsed.total_employees?.toString() || "");
+      setAmountInvestedCommunityPrograms(parsed.amount_invested_community_programs?.toString() || "");
+      setTotalRevenue(parsed.total_revenue?.toString() || "");
+      setNetPromoterScore(parsed.net_promoter_score?.toString() || "");
+      setNumberReportedViolationsSeverityWeight(parsed.number_reported_violations_severity_weight?.toString() || "");
+      setAvgTrainingHoursPerEmployee(parsed.avg_training_hours_per_employee?.toString() || "");
+      setNumberIndependentDirectors(parsed.number_independent_directors?.toString() || "");
+      setTotalNumberDirectors(parsed.total_number_directors?.toString() || "");
+      setCeoPayRatio(parsed.ceo_pay_ratio?.toString() || "");
+      setNumberIndependentAuditCommitteeMembers(parsed.number_independent_audit_committee_members?.toString() || "");
+      setTotalAuditCommitteeMembers(parsed.total_audit_committee_members?.toString() || "");
+      setNumberShareholderFriendlyPoliciesImplemented(parsed.number_shareholder_friendly_policies_implemented?.toString() || "");
+      setTotalNumberEvaluatedPolicies(parsed.total_number_evaluated_policies?.toString() || "");
+      setNumberDisclosedEsgMetrics(parsed.number_disclosed_esg_metrics?.toString() || "");
+      setTotalNumberRelevantEsgMetrics(parsed.total_number_relevant_esg_metrics?.toString() || "");
+      setNumberCorruptionIncidentsSeverityWeight(parsed.number_corruption_incidents_severity_weight?.toString() || "");
+      setNumberDisclosedTaxJurisdictions(parsed.number_disclosed_tax_jurisdictions?.toString() || "");
+      setTotalNumberOperatingJurisdictions(parsed.total_number_operating_jurisdictions?.toString() || "");
+    } catch (e) {
+      console.warn("❌ Failed to prefill ESG state:", e);
+    }
+  };
+
+  prefillFromLocalStorage();
+
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === "esg_upload_result") {
+      prefillFromLocalStorage();
+    }
+  };
+
+  window.addEventListener("storage", onStorage);
+
+  const origSetItem = localStorage.setItem;
+  localStorage.setItem = function (key, value) {
+    origSetItem.apply(this, arguments as any);
+    if (key === "esg_upload_result") {
+      prefillFromLocalStorage();
+    }
+  };
+
+  return () => {
+    window.removeEventListener("storage", onStorage);
+    localStorage.setItem = origSetItem;
+  };
+}, []);
+
+const [uploadProgress, setUploadProgress] = useState(0);
+
+  const handleFileUpload = async (key: string, file: File) => {
+    try {
+      setUploadedFiles((prev) => ({ ...prev, [key]: file }))
+      setUploadProgress(10); 
+      const formData = new FormData()
+      formData.append("file", file)
+      console.log("Uploading file:", file.name);
+
+      setUploadProgress(30);
+      const response = await fetch("http://localhost:8000/api/upload-esg-report", {
+        method: "POST",
+        body: formData,
+      })
+       setUploadProgress(60); 
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.detail || "Failed to upload ESG report.")
+      }
+      const data = await response.json()
+      localStorage.setItem("esg_raw",data);
+      setUploadProgress(90); 
+      // Store relevant data in localStorage
+      localStorage.setItem("esg_upload_result", JSON.stringify(data.result))
+      localStorage.setItem("esg_overall_data", JSON.stringify(data.overall_data))
+      localStorage.setItem("esg_upload_status", data.status)
+      setUploadProgress(100);
+      console.log("Upload and extraction successful:", data)
+    } catch (err) {
+      console.error("Upload error:", err)
+      alert("Failed to upload ESG report. Please try again.")
+    }
+  }
+
+
   const [formData, setFormData] = useState({
     // Company Information
-    companyName: "",
-    industry: "",
-    location: "",
-    employeeCount: "",
-    annualRevenue: "",
+    company_name: "",
+    reporting_year: "",
 
     // Environmental
-    carbonEmissions: "",
-    renewableEnergy: false,
-    wasteReduction: "",
-    waterUsage: "",
+    company_ghg_emissions_per_unit_revenue: "",
+    company_energy_consumption_per_unit_output: "",
+    company_water_withdrawal_per_unit_output: "",
+    amount_waste_recycled: "",
+    total_waste_generated: "",
+    environmental_fines_penalty_weight: "",
+    renewable_energy_consumption: "",
+    total_energy_consumption: "",
+    biodiversity_impact_score: "",
+    climate_risk_mitigation_measures_implemented: "",
+    total_applicable_measures: "",
 
     // Social
-    diversityPolicy: false,
-    laborStandards: "",
-    communityPrograms: "",
-    employeeSafety: "",
+    employee_turnover_rate: "",
+    company_injury_rate: "",
+    number_diverse_employees: "",
+    total_employees: "",
+    amount_invested_community_programs: "",
+    total_revenue: "",
+    net_promoter_score: "",
+    number_reported_violations_severity_weight: "",
+    avg_training_hours_per_employee: "",
 
     // Governance
-    boardIndependence: "",
-    transparencyReporting: false,
-    riskManagement: "",
-
-    // Certifications
-    selectedCertifications: [],
+    number_independent_directors: "",
+    total_number_directors: "",
+    ceo_pay_ratio: "",
+    number_independent_audit_committee_members: "",
+    total_audit_committee_members: "",
+    number_shareholder_friendly_policies_implemented: "",
+    total_number_evaluated_policies: "",
+    number_disclosed_esg_metrics: "",
+    total_number_relevant_esg_metrics: "",
+    number_corruption_incidents_severity_weight: "",
+    number_disclosed_tax_jurisdictions: "",
+    total_number_operating_jurisdictions: ""
   })
 
-  const [uploadedFiles, setUploadedFiles] = useState({
-    esgDocument: null,
-    certificationFiles: {},
+
+  const [expandedSections, setExpandedSections] = useState({
+    company: true,
+    environmental: false,
+    social: false,
+    governance: false,
+    documents: false
   })
 
   const { toast } = useToast()
 
   const updateFormData = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleFileUpload = (field: string, file: File) => {
-    setUploadedFiles((prev) => ({ ...prev, [field]: file }))
-    toast({
-      title: "File uploaded successfully",
-      description: `${file.name} has been uploaded.`,
-    })
-  }
 
-  const handleCertificationFileUpload = (certification: string, file: File) => {
-    setUploadedFiles((prev) => ({
+  type SectionId = 'company' | 'environmental' | 'social' | 'governance' | 'documents';
+
+  const toggleSection = (sectionId: SectionId) => {
+    setExpandedSections(prev => ({
       ...prev,
-      certificationFiles: { ...prev.certificationFiles, [certification]: file },
+      [sectionId]: !prev[sectionId]
     }))
-    toast({
-      title: "Certification file uploaded",
-      description: `${file.name} uploaded for ${certification}.`,
-    })
   }
 
   const calculateProgress = () => {
-    const totalFields = 20
+    const totalFields = Object.keys(formData).length
     const filledFields = Object.values(formData).filter(
-      (value) => value !== "" && value !== null && value !== false && (Array.isArray(value) ? value.length > 0 : true),
+      value => value !== "" && value !== null
     ).length
     return Math.round((filledFields / totalFields) * 100)
   }
 
+
+  
   const handleSubmit = () => {
+
     toast({
       title: "Data submitted successfully!",
-      description: "Your ESG data has been submitted for review. You'll receive confirmation within 24 hours.",
+      description: "Your ESG data has been submitted for calculation. Results will be available shortly.",
     })
+    setTimeout(() => {
+    window.location.href = "http://localhost:3000/esg-analysis";
+  }, 2000); 
   }
 
   return (
@@ -109,420 +275,596 @@ export default function DataSubmissionPage() {
             ESG Data <span className="gradient-text">Submission Portal</span>
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground px-4">
-            Submit your sustainability data for comprehensive ESG evaluation
+            Submit your sustainability metrics for comprehensive ESG scoring
           </p>
         </div>
 
         {/* Progress Bar */}
         <div className="mb-8 animate-slide-up">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-sm font-medium">Submission Progress</span>
-            <span className="text-sm text-muted-foreground">{calculateProgress()}% Complete</span>
-          </div>
-          <Progress value={calculateProgress()} className="h-2 transition-all duration-500" />
-        </div>
+  <div className="flex justify-between items-center mb-4">
+    <span className="text-sm font-medium">Submission Progress</span>
+    <span className="text-sm text-muted-foreground">{uploadProgress}% Complete</span>
+  </div>
+  <Progress value={uploadProgress} className="h-2 transition-all duration-500" />
+</div>
 
-        <div className="max-w-6xl mx-auto space-y-8">
-          {/* Company Information */}
-          <Card className="transition-all duration-300 hover:shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl lg:text-2xl flex items-center">
-                <Factory className="h-5 w-5 lg:h-6 lg:w-6 mr-3 text-primary animate-float" />
-                Company Information
-              </CardTitle>
-              <CardDescription>Basic company details and profile information</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="companyName">Company Name *</Label>
-                  <Input
-                    id="companyName"
-                    value={formData.companyName}
-                    onChange={(e) => updateFormData("companyName", e.target.value)}
-                    placeholder="Enter company name"
-                    className="transition-all duration-300 focus:scale-105"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="industry">Industry *</Label>
-                  <Select value={formData.industry} onValueChange={(value) => updateFormData("industry", value)}>
-                    <SelectTrigger className="transition-all duration-300 hover:shadow-md">
-                      <SelectValue placeholder="Select industry" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                      <SelectItem value="technology">Technology</SelectItem>
-                      <SelectItem value="retail">Retail</SelectItem>
-                      <SelectItem value="healthcare">Healthcare</SelectItem>
-                      <SelectItem value="finance">Finance</SelectItem>
-                      <SelectItem value="energy">Energy</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location *</Label>
-                  <Input
-                    id="location"
-                    value={formData.location}
-                    onChange={(e) => updateFormData("location", e.target.value)}
-                    placeholder="City, Country"
-                    className="transition-all duration-300 focus:scale-105"
-                  />
-                </div>
-              </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="employeeCount">Employee Count</Label>
-                  <Select
-                    value={formData.employeeCount}
-                    onValueChange={(value) => updateFormData("employeeCount", value)}
-                  >
-                    <SelectTrigger className="transition-all duration-300 hover:shadow-md">
-                      <SelectValue placeholder="Select range" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1-50">1-50</SelectItem>
-                      <SelectItem value="51-200">51-200</SelectItem>
-                      <SelectItem value="201-1000">201-1000</SelectItem>
-                      <SelectItem value="1000+">1000+</SelectItem>
-                    </SelectContent>
-                  </Select>
+        <div className="max-w-6xl mx-auto space-y-6">
+          {sections.map((section) => (
+            <Card
+              key={section.id}
+              className={`transition-all duration-300 hover:shadow-lg ${expandedSections[section.id as SectionId] ? 'border-primary/30' : ''}`}
+            >
+              <CardHeader
+                className="cursor-pointer hover:bg-muted/50 transition-colors duration-200 rounded-t-lg"
+                onClick={() => toggleSection(section.id as SectionId)}
+              >
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <section.icon className="h-5 w-5 lg:h-6 lg:w-6 mr-3 text-primary" />
+                    <CardTitle className="text-xl lg:text-2xl">{section.title}</CardTitle>
+                  </div>
+                  {expandedSections[section.id as SectionId] ? (
+                    <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="annualRevenue">Annual Revenue (USD)</Label>
-                  <Select
-                    value={formData.annualRevenue}
-                    onValueChange={(value) => updateFormData("annualRevenue", value)}
-                  >
-                    <SelectTrigger className="transition-all duration-300 hover:shadow-md">
-                      <SelectValue placeholder="Select range" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="<1M">Less than $1M</SelectItem>
-                      <SelectItem value="1M-10M">$1M - $10M</SelectItem>
-                      <SelectItem value="10M-100M">$10M - $100M</SelectItem>
-                      <SelectItem value="100M+">$100M+</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                <CardDescription>{section.description}</CardDescription>
+              </CardHeader>
 
-          {/* Environmental Data */}
-          <Card className="transition-all duration-300 hover:shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl lg:text-2xl flex items-center">
-                <Leaf className="h-5 w-5 lg:h-6 lg:w-6 mr-3 text-primary animate-float" />
-                Environmental Data
-              </CardTitle>
-              <CardDescription>Carbon footprint and environmental policies</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="carbonEmissions">Annual Carbon Emissions (tCO2e)</Label>
-                  <Input
-                    id="carbonEmissions"
-                    value={formData.carbonEmissions}
-                    onChange={(e) => updateFormData("carbonEmissions", e.target.value)}
-                    placeholder="Enter emissions data"
-                    className="transition-all duration-300 focus:scale-105"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="wasteReduction">Waste Reduction (%)</Label>
-                  <Input
-                    id="wasteReduction"
-                    value={formData.wasteReduction}
-                    onChange={(e) => updateFormData("wasteReduction", e.target.value)}
-                    placeholder="Percentage reduction"
-                    className="transition-all duration-300 focus:scale-105"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="waterUsage">Water Usage (cubic meters/year)</Label>
-                  <Input
-                    id="waterUsage"
-                    value={formData.waterUsage}
-                    onChange={(e) => updateFormData("waterUsage", e.target.value)}
-                    placeholder="Annual water consumption"
-                    className="transition-all duration-300 focus:scale-105"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="renewableEnergy"
-                  checked={formData.renewableEnergy}
-                  onCheckedChange={(checked) => updateFormData("renewableEnergy", checked)}
-                  className="transition-all duration-300"
-                />
-                <Label htmlFor="renewableEnergy">Uses 100% renewable energy</Label>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Social Responsibility */}
-          <Card className="transition-all duration-300 hover:shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl lg:text-2xl flex items-center">
-                <Users className="h-5 w-5 lg:h-6 lg:w-6 mr-3 text-primary animate-float" />
-                Social Responsibility
-              </CardTitle>
-              <CardDescription>Labor practices and community impact</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="laborStandards">Labor Standards Compliance</Label>
-                  <Select
-                    value={formData.laborStandards}
-                    onValueChange={(value) => updateFormData("laborStandards", value)}
-                  >
-                    <SelectTrigger className="transition-all duration-300 hover:shadow-md">
-                      <SelectValue placeholder="Select compliance level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="full">Full Compliance</SelectItem>
-                      <SelectItem value="partial">Partial Compliance</SelectItem>
-                      <SelectItem value="developing">Developing Standards</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="employeeSafety">Employee Safety Score (0-100)</Label>
-                  <Input
-                    id="employeeSafety"
-                    value={formData.employeeSafety}
-                    onChange={(e) => updateFormData("employeeSafety", e.target.value)}
-                    placeholder="Safety performance score"
-                    className="transition-all duration-300 focus:scale-105"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="communityPrograms">Community Programs Description</Label>
-                <Textarea
-                  id="communityPrograms"
-                  value={formData.communityPrograms}
-                  onChange={(e) => updateFormData("communityPrograms", e.target.value)}
-                  placeholder="Describe your community involvement programs"
-                  rows={3}
-                  className="transition-all duration-300 focus:scale-105"
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="diversityPolicy"
-                  checked={formData.diversityPolicy}
-                  onCheckedChange={(checked) => updateFormData("diversityPolicy", checked)}
-                  className="transition-all duration-300"
-                />
-                <Label htmlFor="diversityPolicy">Has formal diversity and inclusion policy</Label>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Governance */}
-          <Card className="transition-all duration-300 hover:shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl lg:text-2xl flex items-center">
-                <Shield className="h-5 w-5 lg:h-6 lg:w-6 mr-3 text-primary animate-float" />
-                Governance
-              </CardTitle>
-              <CardDescription>Corporate governance and compliance</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="boardIndependence">Board Independence (%)</Label>
-                  <Input
-                    id="boardIndependence"
-                    value={formData.boardIndependence}
-                    onChange={(e) => updateFormData("boardIndependence", e.target.value)}
-                    placeholder="Percentage of independent board members"
-                    className="transition-all duration-300 focus:scale-105"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="riskManagement">Risk Management Framework</Label>
-                  <Select
-                    value={formData.riskManagement}
-                    onValueChange={(value) => updateFormData("riskManagement", value)}
-                  >
-                    <SelectTrigger className="transition-all duration-300 hover:shadow-md">
-                      <SelectValue placeholder="Select framework maturity" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="advanced">Advanced</SelectItem>
-                      <SelectItem value="intermediate">Intermediate</SelectItem>
-                      <SelectItem value="basic">Basic</SelectItem>
-                      <SelectItem value="developing">Developing</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="transparencyReporting"
-                  checked={formData.transparencyReporting}
-                  onCheckedChange={(checked) => updateFormData("transparencyReporting", checked)}
-                  className="transition-all duration-300"
-                />
-                <Label htmlFor="transparencyReporting">Publishes annual transparency reports</Label>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Certifications */}
-          <Card className="transition-all duration-300 hover:shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl lg:text-2xl flex items-center">
-                <Award className="h-5 w-5 lg:h-6 lg:w-6 mr-3 text-primary animate-float" />
-                Certifications
-              </CardTitle>
-              <CardDescription>ISO certifications and standards</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <Label>Select Your Certifications</Label>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {certifications.map((cert, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center space-x-2 transition-all duration-300 hover:scale-105"
-                    >
-                      <Checkbox
-                        id={`cert-${index}`}
-                        checked={formData.selectedCertifications.includes(cert)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            updateFormData("selectedCertifications", [...formData.selectedCertifications, cert])
-                          } else {
-                            updateFormData(
-                              "selectedCertifications",
-                              formData.selectedCertifications.filter((c) => c !== cert),
-                            )
-                          }
-                        }}
-                        className="transition-all duration-300"
-                      />
-                      <Label htmlFor={`cert-${index}`} className="text-sm">
-                        {cert}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Individual Certification Upload Sections */}
-              {formData.selectedCertifications.length > 0 && (
-                <div className="space-y-4 animate-fade-in">
-                  <Label>Upload Certification Documents</Label>
-                  {formData.selectedCertifications.map((cert, index) => (
-                    <div key={index} className="p-4 border rounded-lg space-y-2">
-                      <h4 className="font-medium text-sm">{cert}</h4>
-                      <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center transition-all duration-300 hover:border-primary/50 hover:bg-primary/5">
-                        <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground mb-2">Upload document for {cert}</p>
-                        <input
-                          type="file"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0]
-                            if (file) handleCertificationFileUpload(cert, file)
-                          }}
-                          className="hidden"
-                          id={`cert-upload-${index}`}
-                          accept=".pdf,.jpg,.png,.docx"
+              {expandedSections[section.id as SectionId] && (
+                <CardContent className="space-y-6 animate-fade-in">
+                  {section.id === "company" && (
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="company_name">
+                          <div className="flex items-center gap-2">
+                            Company Name
+                            <span className="text-red-500">*</span>
+                            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        </Label>
+                        <Input
+                          id="company_name"
+                          value={companyName}
+                          onChange={(e) => setCompanyName(e.target.value)}
+                          placeholder="Enter company name"
+                          className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                         />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => document.getElementById(`cert-upload-${index}`)?.click()}
-                          className="transition-all duration-300 hover:scale-105"
-                        >
-                          Choose File
-                        </Button>
-                        {uploadedFiles.certificationFiles[cert] && (
-                          <p className="text-xs text-green-600 mt-2">✓ {uploadedFiles.certificationFiles[cert].name}</p>
-                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="reporting_year">
+                          <div className="flex items-center gap-2">
+                            Reporting Year
+                            <span className="text-red-500">*</span>
+                          </div>
+                        </Label>
+                        <Input
+                          id="reporting_year"
+                          type="number"
+                          value={reportingYear}
+                          onChange={(e) => setReportingYear(e.target.value)}
+                          placeholder="2023"
+                          min="2000"
+                          max="2099"
+                          className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="total_revenue">Total Revenue (USD) </Label>
+                        <Input
+                          id="total_revenue"
+                          type="number"
+                          value={totalRevenue}
+                          onChange={(e) => setTotalRevenue(e.target.value)}
+                          placeholder="Amount (in USD)"
+                          min="0"
+                          max="INF"
+                          className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                        />
+                      </div>
+
+                    </div>
+                  )}
+
+                  {section.id === "environmental" && (
+                    <div className="space-y-6">
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="company_ghg_emissions_per_unit_revenue">
+                            GHG Emissions per Unit Revenue
+                          </Label>
+                          <Input
+                            id="company_ghg_emissions_per_unit_revenue"
+                            type="number"
+                            step="0.01"
+                            value={companyGhgEmissionsPerUnitRevenue}
+                            onChange={(e) => setCompanyGhgEmissionsPerUnitRevenue(e.target.value)}
+                            placeholder="Metric tons CO2e per $ revenue"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="company_energy_consumption_per_unit_output">
+                            Energy Consumption per Unit Output
+                          </Label>
+                          <Input
+                            id="company_energy_consumption_per_unit_output"
+                            type="number"
+                            step="0.01"
+                            value={companyEnergyConsumptionPerUnitOutput}
+                            onChange={(e) => setCompanyEnergyConsumptionPerUnitOutput(e.target.value)}
+                            placeholder="kWh per unit output"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="company_water_withdrawal_per_unit_output">
+                            Water Withdrawal per Unit Output
+                          </Label>
+                          <Input
+                            id="company_water_withdrawal_per_unit_output"
+                            type="number"
+                            step="0.01"
+                            value={companyWaterWithdrawalPerUnitOutput}
+                            onChange={(e) => setCompanyWaterWithdrawalPerUnitOutput(e.target.value)}
+                            placeholder="Cubic meters per unit output"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="amount_waste_recycled">Amount of Waste (Metric tons kg)</Label>
+                          <Input
+                            id="amount_waste_recycled"
+                            type="number"
+                            step="0.01"
+                            value={amountWasteRecycled}
+                            onChange={(e) => setAmountWasteRecycled(e.target.value)}
+                            placeholder="Metric tons recycled"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="total_waste_generated">Total Waste Generated (Metric tons kg)</Label>
+                          <Input
+                            id="total_waste_generated"
+                            type="number"
+                            step="0.01"
+                            value={totalWasteGenerated}
+                            onChange={(e) => setTotalWasteGenerated(e.target.value)}
+                            placeholder="Metric tons total waste"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="environmental_fines_penalty_weight">
+                            Environmental Fines/Penalties (Weighted)
+                          </Label>
+                          <Input
+                            id="environmental_fines_penalty_weight"
+                            type="number"
+                            value={environmentalFinesPenaltyWeight}
+                            onChange={(e) => setEnvironmentalFinesPenaltyWeight(e.target.value)}
+                            placeholder="Weighted score (0-10)"
+                            min="0"
+                            max="10"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="renewable_energy_consumption">Renewable Energy Consumption (MWh)</Label>
+                          <Input
+                            id="renewable_energy_consumption"
+                            type="number"
+                            step="0.01"
+                            value={renewableEnergyConsumption}
+                            onChange={(e) => setRenewableEnergyConsumption(e.target.value)}
+                            placeholder="MWh from renewables"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="total_energy_consumption">Total Energy Consumption (MWh)</Label>
+                          <Input
+                            id="total_energy_consumption"
+                            type="number"
+                            step="0.01"
+                            value={totalEnergyConsumption}
+                            onChange={(e) => setTotalEnergyConsumption(e.target.value)}
+                            placeholder="Total MWh consumed"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="biodiversity_impact_score">Biodiversity Impact Score</Label>
+                          <Input
+                            id="biodiversity_impact_score"
+                            type="number"
+                            step="0.1"
+                            value={biodiversityImpactScore}
+                            onChange={(e) => setBiodiversityImpactScore(e.target.value)}
+                            placeholder="Score (0-10)"
+                            min="0"
+                            max="10"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid sm:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="climate_risk_mitigation_measures_implemented">
+                            Climate Risk Mitigation Measures Implemented
+                          </Label>
+                          <Input
+                            id="climate_risk_mitigation_measures_implemented"
+                            type="number"
+                            value={climateRiskMitigationMeasuresImplemented}
+                            onChange={(e) => setClimateRiskMitigationMeasuresImplemented(e.target.value)}
+                            placeholder="Number of measures"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="total_applicable_measures">Total Applicable Measures</Label>
+                          <Input
+                            id="total_applicable_measures"
+                            type="number"
+                            value={totalApplicableMeasures}
+                            onChange={(e) => setTotalApplicableMeasures(e.target.value)}
+                            placeholder="Total possible measures"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  )}
 
-              {formData.selectedCertifications.length > 0 && (
-                <div className="space-y-2 animate-fade-in">
-                  <Label>Selected Certifications</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.selectedCertifications.map((cert, index) => (
-                      <Badge key={index} variant="secondary" className="transition-all duration-300 hover:scale-105">
-                        {cert}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  {section.id === "social" && (
+                    <div className="space-y-6">
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="employee_turnover_rate">Employee Turnover Rate (%)</Label>
+                          <Input
+                            id="employee_turnover_rate"
+                            type="number"
+                            step="0.1"
+                            value={employeeTurnoverRate}
+                            onChange={(e) => setEmployeeTurnoverRate(e.target.value)}
+                            placeholder="Annual turnover percentage"
+                            min="0"
+                            max="100"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="company_injury_rate">Company Injury Rate</Label>
+                          <Input
+                            id="company_injury_rate"
+                            type="number"
+                            step="0.01"
+                            value={companyInjuryRate}
+                            onChange={(e) => setCompanyInjuryRate(e.target.value)}
+                            placeholder="Injuries per 100 employees"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="number_diverse_employees">Number of Diverse Employees</Label>
+                          <Input
+                            id="number_diverse_employees"
+                            type="number"
+                            value={numberDiverseEmployees}
+                            onChange={(e) => setNumberDiverseEmployees(e.target.value)}
+                            placeholder="Count of diverse employees"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                      </div>
 
-          {/* ESG Document Upload */}
-          <Card className="transition-all duration-300 hover:shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl lg:text-2xl flex items-center">
-                <FileText className="h-5 w-5 lg:h-6 lg:w-6 mr-3 text-primary animate-float" />
-                ESG Document
-              </CardTitle>
-              <CardDescription>Upload your comprehensive ESG documentation</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center transition-all duration-300 hover:border-primary/50 hover:bg-primary/5">
-                <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground animate-float" />
-                <p className="text-lg font-medium mb-2">Upload ESG Document</p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Upload your comprehensive ESG policy, sustainability report, or related documentation
-                </p>
-                <input
-                  type="file"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) handleFileUpload("esgDocument", file)
-                  }}
-                  className="hidden"
-                  id="esg-document-upload"
-                  accept=".pdf,.docx,.xlsx"
-                />
-                <Button
-                  variant="outline"
-                  onClick={() => document.getElementById("esg-document-upload")?.click()}
-                  className="transition-all duration-300 hover:scale-105"
-                >
-                  Choose File
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">Supported formats: PDF, Word, Excel (Max 10MB)</p>
-                {uploadedFiles.esgDocument && (
-                  <p className="text-sm text-green-600 mt-2">✓ {uploadedFiles.esgDocument.name}</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="total_employees">Total Employees</Label>
+                          <Input
+                            id="total_employees"
+                            type="number"
+                            value={totalEmployees}
+                            onChange={(e) => setTotalEmployees(e.target.value)}
+                            placeholder="Total employee count"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+
+
+                        <div className="space-y-2">
+                          <Label htmlFor="amount_invested_community_programs">
+                            Amount Invested in Community Programs (USD)
+                          </Label>
+                          <Input
+                            id="amount_invested_community_programs"
+                            type="number"
+                            step="0.01"
+                            value={amountInvestedCommunityPrograms}
+                            onChange={(e) => setAmountInvestedCommunityPrograms(e.target.value)}
+                            placeholder="Dollar amount"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+
+
+
+                        <div className="space-y-2">
+                          <Label htmlFor="net_promoter_score">Net Promoter Score</Label>
+                          <Input
+                            id="net_promoter_score"
+                            type="number"
+                            value={netPromoterScore}
+                            onChange={(e) => setNetPromoterScore(e.target.value)}
+                            placeholder="Score (-100 to 100)"
+                            min="-100"
+                            max="100"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid sm:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="number_reported_violations_severity_weight">
+                            Reported Violations (Severity Weighted)
+                          </Label>
+                          <Input
+                            id="number_reported_violations_severity_weight"
+                            type="number"
+                            value={numberReportedViolationsSeverityWeight}
+                            onChange={(e) => setNumberReportedViolationsSeverityWeight(e.target.value)}
+                            placeholder="Weighted score (0-10)"
+                            min="0"
+                            max="10"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="avg_training_hours_per_employee">
+                            Average Training Hours per Employee
+                          </Label>
+                          <Input
+                            id="avg_training_hours_per_employee"
+                            type="number"
+                            step="0.1"
+                            value={avgTrainingHoursPerEmployee}
+                            onChange={(e) => setAvgTrainingHoursPerEmployee(e.target.value)}
+                            placeholder="Hours per employee per year"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {section.id === "governance" && (
+                    <div className="space-y-6">
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="number_independent_directors">Number of Independent Directors</Label>
+                          <Input
+                            id="number_independent_directors"
+                            type="number"
+                            value={numberIndependentDirectors}
+                            onChange={(e) => setNumberIndependentDirectors(e.target.value)}
+                            placeholder="Count of independent directors"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="total_number_directors">Total Number of Directors</Label>
+                          <Input
+                            id="total_number_directors"
+                            type="number"
+                            value={totalNumberDirectors}
+                            onChange={(e) => setTotalNumberDirectors(e.target.value)}
+                            placeholder="Total board members"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="ceo_pay_ratio">CEO Pay Ratio</Label>
+                          <Input
+                            id="ceo_pay_ratio"
+                            type="number"
+                            step="0.1"
+                            value={ceoPayRatio}
+                            onChange={(e) => setCeoPayRatio(e.target.value)}
+                            placeholder="Ratio of CEO to median worker pay"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="number_independent_audit_committee_members">
+                            Independent Audit Committee Members
+                          </Label>
+                          <Input
+                            id="number_independent_audit_committee_members"
+                            type="number"
+                            value={numberIndependentAuditCommitteeMembers}
+                            onChange={(e) => setNumberIndependentAuditCommitteeMembers(e.target.value)}
+                            placeholder="Count of independent members"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="total_audit_committee_members">Total Audit Committee Members</Label>
+                          <Input
+                            id="total_audit_committee_members"
+                            type="number"
+                            value={totalAuditCommitteeMembers}
+                            onChange={(e) => setTotalAuditCommitteeMembers(e.target.value)}
+                            placeholder="Total committee members"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="number_shareholder_friendly_policies_implemented">
+                            Shareholder-Friendly Policies Implemented
+                          </Label>
+                          <Input
+                            id="number_shareholder_friendly_policies_implemented"
+                            type="number"
+                            value={numberShareholderFriendlyPoliciesImplemented}
+                            onChange={(e) => setNumberShareholderFriendlyPoliciesImplemented(e.target.value)}
+                            placeholder="Number of policies"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="total_number_evaluated_policies">Total Number of Evaluated Policies</Label>
+                          <Input
+                            id="total_number_evaluated_policies"
+                            type="number"
+                            value={totalNumberEvaluatedPolicies}
+                            onChange={(e) => setTotalNumberEvaluatedPolicies(e.target.value)}
+                            placeholder="Total policies evaluated"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="number_disclosed_esg_metrics">Number of Disclosed ESG Metrics</Label>
+                          <Input
+                            id="number_disclosed_esg_metrics"
+                            type="number"
+                            value={numberDisclosedEsgMetrics}
+                            onChange={(e) => setNumberDisclosedEsgMetrics(e.target.value)}
+                            placeholder="Metrics publicly disclosed"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="total_number_relevant_esg_metrics">Total Relevant ESG Metrics</Label>
+                          <Input
+                            id="total_number_relevant_esg_metrics"
+                            type="number"
+                            value={totalNumberRelevantEsgMetrics}
+                            onChange={(e) => setTotalNumberRelevantEsgMetrics(e.target.value)}
+                            placeholder="Total applicable metrics"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="number_corruption_incidents_severity_weight">
+                            Corruption Incidents (Severity Weighted)
+                          </Label>
+                          <Input
+                            id="number_corruption_incidents_severity_weight"
+                            type="number"
+                            value={numberCorruptionIncidentsSeverityWeight}
+                            onChange={(e) => setNumberCorruptionIncidentsSeverityWeight(e.target.value)}
+                            placeholder="Weighted score (0-10)"
+                            min="0"
+                            max="10"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="number_disclosed_tax_jurisdictions">Number of Disclosed Tax Jurisdictions</Label>
+                          <Input
+                            id="number_disclosed_tax_jurisdictions"
+                            type="number"
+                            value={numberDisclosedTaxJurisdictions}
+                            onChange={(e) => setNumberDisclosedTaxJurisdictions(e.target.value)}
+                            placeholder="Jurisdictions disclosed"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="total_number_operating_jurisdictions">Total Number of Operating Jurisdictions</Label>
+                          <Input
+                            id="total_number_operating_jurisdictions"
+                            type="number"
+                            value={totalNumberOperatingJurisdictions}
+                            onChange={(e) => setTotalNumberOperatingJurisdictions(e.target.value)}
+                            placeholder="Total jurisdictions operated in"
+                            className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {section.id === "documents" && (
+                    <div className="space-y-6">
+                      {/* ESG Document Upload */}
+                      <div className="space-y-4">
+                        <Label>ESG Report Document</Label>
+                        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center transition-all duration-300 hover:border-primary/50 hover:bg-primary/5">
+                          <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground animate-float" />
+                          <p className="text-lg font-medium mb-2">Upload ESG Report</p>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Upload your comprehensive ESG report (PDF, Word, Excel)
+                          </p>
+
+                          {/* Hidden File Input */}
+                          <input
+                            type="file"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0]
+                              if (file) handleFileUpload("esgDocument", file)
+                            }}
+                            className="hidden"
+                            id="esg-document-upload"
+                            accept=".pdf,.docx,.xlsx"
+                          />
+
+                          {/* Button to trigger file input */}
+                          <Button
+                            variant="outline"
+                            onClick={() => document.getElementById("esg-document-upload")?.click()}
+                            className="transition-all duration-300 hover:scale-105"
+                          >
+                            Choose File
+                          </Button>
+
+                          <p className="text-xs text-muted-foreground mt-2">Max file size: 10MB</p>
+
+                          {uploadedFiles.esgDocument && (
+                            <p className="text-sm text-green-600 mt-2 flex items-center justify-center gap-2">
+                              <CheckCircle className="h-4 w-4" />
+                              {uploadedFiles.esgDocument.name}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              )}
+            </Card>
+          ))}
 
           {/* Submit Button */}
-          <div className="flex justify-center animate-slide-up">
+          <div className="flex justify-center animate-slide-up pt-6">
             <Button
               onClick={handleSubmit}
-              className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 flex items-center transition-all duration-300 hover:scale-105 px-8 py-3 text-lg"
+              disabled={uploadProgress < 100}
+              className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 flex items-center transition-all duration-300 hover:scale-105 px-8 py-6 text-lg shadow-lg"
             >
-              Submit ESG Data
-              <CheckCircle className="h-5 w-5 ml-2" />
+              <span className="mr-2">Submit ESG Data</span>
+              <CheckCircle className="h-5 w-5" />
             </Button>
           </div>
         </div>
