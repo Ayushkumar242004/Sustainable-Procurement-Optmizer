@@ -13,6 +13,7 @@ from .services.gemini_service import gemini_service
 # route for testing mongo connection 
 from app.routes import test 
 from app.routes import auth 
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 load_dotenv()
 import google.generativeai as genai

@@ -26,20 +26,17 @@ export default function ClientLayout({
   const router = useRouter()
   const pathname = usePathname()
 
-  // useEffect(() => {
-  //   // Check if user is registered/logged in
-  //   const userData = localStorage.getItem("userData")
-  //   const publicPages = ["/registration", "/login", "/logout"]
+ useEffect(() => {
+  const userData = localStorage.getItem("userData")
+  const publicPages = ["/auth"]
 
-  //   if (!userData && !publicPages.includes(pathname)) {
-  //     router.push("/registration")
-  //   } else if (userData) {
-  //     const user = JSON.parse(userData)
-  //     if (!user.isLoggedIn && !publicPages.includes(pathname)) {
-  //       router.push("/login")
-  //     }
-  //   }
-  // }, [router, pathname])
+  // If user data doesn't exist and trying to access a protected page
+  if (!userData && !publicPages.includes(pathname)) {
+    router.push("/auth")
+  }
+
+  // we can add role-based redirects here if needed later on
+  }, [router, pathname])
 
   return (
     <html lang="en" suppressHydrationWarning>
