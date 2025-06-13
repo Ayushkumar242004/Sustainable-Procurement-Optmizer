@@ -27,13 +27,13 @@ export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [userData, setUserData] = useState<any>(null)
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
-    }
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+  // useEffect(() => {
+  //   const handleScroll = () => {
+  //     setIsScrolled(window.scrollY > 20)
+  //   }
+  //   window.addEventListener("scroll", handleScroll)
+  //   return () => window.removeEventListener("scroll", handleScroll)
+  // }, [])
 
   // useEffect(() => {
   //   // Check for user data in localStorage
