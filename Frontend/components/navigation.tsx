@@ -35,20 +35,20 @@ export function Navigation() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  useEffect(() => {
-    // Check for user data in localStorage
-    const storedUserData = localStorage.getItem("userData")
-    if (storedUserData) {
-      const user = JSON.parse(storedUserData)
-      if (user.isLoggedIn) {
-        setUserData(user)
-      } else {
-        router.push("/registration")
-      }
-    } else {
-      router.push("/registration")
-    }
-  }, [router])
+  // useEffect(() => {
+  //   // Check for user data in localStorage
+  //   const storedUserData = localStorage.getItem("userData")
+  //   if (storedUserData) {
+  //     const user = JSON.parse(storedUserData)
+  //     if (user.isLoggedIn) {
+  //       setUserData(user)
+  //     } else {
+  //       router.push("/registration")
+  //     }
+  //   } else {
+  //     router.push("/registration")
+  //   }
+  // }, [router])
 
   const handleLogout = () => {
     router.push("/logout")

@@ -15,7 +15,7 @@ export default function LogoutPage() {
 
     // Redirect to registration after 3 seconds
     const timer = setTimeout(() => {
-      router.push("/registration")
+      router.push("/auth")
     }, 3000)
 
     return () => clearTimeout(timer)

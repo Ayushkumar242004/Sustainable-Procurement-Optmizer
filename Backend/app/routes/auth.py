@@ -1,58 +1,70 @@
 from fastapi import APIRouter, HTTPException, status
-from app.database import db
-from app.auth.jwt import create_jwt_token
+from app.schemas.auth_schemas import CompanyRegister, SupplierRegister, EmployeeRegister, EmployeeLogin
 from app.auth.auth_handler import hash_password, verify_password
-from app.schemas.auth_schemas import LoginRequest , RegistrationRequest
-router = APIRouter()
+from app.auth.jwt import create_jwt_token
+from app.database import db
 
-# ----- ROUTES -----
+router = APIRouter(prefix="/auth", tags=["Auth"])
 
-@router.post("/login")
-async def login_user(credentials: LoginRequest):
-    user = await db.users.find_one({"email": credentials.email})
+@router.post("/register/company")
+async def register_company(data: CompanyRegister):
+    existing = await db.companies.find_one({"email_domain": data.email_domain})
+    if existing:
+        raise HTTPException(status_code=400, detail="Company already registered")
 
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid email")
-
-    if not verify_password(credentials.password, user["password"]):
-        raise HTTPException(status_code=401, detail="Invalid password")
-
-    token = create_jwt_token({
-        "sub": str(user["_id"]),
-        "email": user["email"],
-        "role": user.get("role", "user")
-    })
-
-    return {"access_token": token, "token_type": "bearer"}
+    await db.companies.insert_one(data.dict())
+    return {"success": True, "message": "Company registered successfully"}
 
 
-@router.post("/register")
-async def register_user(data: RegistrationRequest):
+@router.post("/register/supplier")
+async def register_supplier(data: SupplierRegister):
+    existing = await db.suppliers.find_one({"email_domain": data.email_domain})
+    if existing:
+        raise HTTPException(status_code=400, detail="Supplier already registered")
+
+    await db.suppliers.insert_one(data.dict())
+    return {"success": True, "message": "Supplier registered successfully"}
+
+
+@router.post("/register/employee")
+async def register_employee(data: EmployeeRegister):
+    domain = data.email.split('@')[-1]
+
+    # Decide where to search based on role
+    if data.role.lower() == "supplier":
+        authorized = await db.suppliers.find_one({"email_domain": domain})
+    else:
+        authorized = await db.companies.find_one({"email_domain": domain})
+
+    if not authorized:
+        raise HTTPException(status_code=403, detail="Email domain not authorized")
+
     existing_user = await db.users.find_one({"email": data.email})
     if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=400, detail="Employee already exists")
 
-    user = {
-        "company_name": data.company_name,
-        "industry": data.industry,
-        "location": data.location,
-        "employee_count": data.employee_count,
-        "fullname": data.fullname,
+    hashed_pw = hash_password(data.password)
+    await db.users.insert_one({
         "email": data.email,
-        "password": hash_password(data.password),
-        "role": data.role
-    }
-
-    result = await db.users.insert_one(user)
-
-    token = create_jwt_token({
-        "sub": str(result.inserted_id),
-        "email": data.email,
+        "password": hashed_pw,
         "role": data.role
     })
+    return {"success": True, "message": "Employee registered successfully"}
 
+
+@router.post("/login/employee")
+async def login_employee(data: EmployeeLogin):
+    user = await db.users.find_one({"email": data.email})
+    if not user or not verify_password(data.password, user['password']):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    token = create_jwt_token({"email": user["email"], "role": user["role"]})
     return {
-        "message": "Registration successful",
-        "access_token": token,
-        "token_type": "bearer"
+        "success": True,
+        "token": token,
+        "user": {
+            "email": user["email"],
+            "role": user["role"]
+        },
+        "message": "Login successful"
     }
