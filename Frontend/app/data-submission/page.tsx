@@ -63,7 +63,11 @@ export default function DataSubmissionPage() {
   const [numberDisclosedTaxJurisdictions, setNumberDisclosedTaxJurisdictions] = useState("");
   const [totalNumberOperatingJurisdictions, setTotalNumberOperatingJurisdictions] = useState("");
 
-useEffect(() => {
+  useEffect(() => {
+
+  // Prefill from storage 
+
+  // < ------ -------- >
   const prefillFromLocalStorage = () => {
     const stored = localStorage.getItem("esg_upload_result");
     if (!stored) return;
@@ -71,6 +75,7 @@ useEffect(() => {
     let parsed: any;
     try {
       parsed = JSON.parse(stored); // This will be a JS object, not a string
+      console.log( parsed ) ;
     } catch (err) {
       console.warn("Failed to parse stored JSON:", err);
       return;
@@ -115,17 +120,20 @@ useEffect(() => {
       console.warn("❌ Failed to prefill ESG state:", e);
     }
   };
-
+  // <------- --------->
+  
+  // calling function
   prefillFromLocalStorage();
-
+  
+  // Event listener to check storage 
   const onStorage = (event: StorageEvent) => {
     if (event.key === "esg_upload_result") {
       prefillFromLocalStorage();
     }
   };
-
   window.addEventListener("storage", onStorage);
 
+  
   const origSetItem = localStorage.setItem;
   localStorage.setItem = function (key, value) {
     origSetItem.apply(this, arguments as any);
@@ -140,11 +148,16 @@ useEffect(() => {
   };
 }, []);
 
+// <------ ------->
 const [uploadProgress, setUploadProgress] = useState(0);
+const [isLoading, setIsLoading] = useState(false);
 
+  // <---- Handles file uploads ---->
   const handleFileUpload = async (key: string, file: File) => {
     try {
+      setIsLoading(true);
       setUploadedFiles((prev) => ({ ...prev, [key]: file }))
+
       setUploadProgress(10); 
       const formData = new FormData()
       formData.append("file", file)
@@ -168,14 +181,16 @@ const [uploadProgress, setUploadProgress] = useState(0);
       localStorage.setItem("esg_overall_data", JSON.stringify(data.overall_data))
       localStorage.setItem("esg_upload_status", data.status)
       setUploadProgress(100);
+      setIsLoading(false);
       console.log("Upload and extraction successful:", data)
     } catch (err) {
+      setIsLoading(false);
       console.error("Upload error:", err)
       alert("Failed to upload ESG report. Please try again.")
     }
   }
-
-
+  
+  //<----- -------->
   const [formData, setFormData] = useState({
     // Company Information
     company_name: "",
@@ -252,8 +267,6 @@ const [uploadProgress, setUploadProgress] = useState(0);
     ).length
     return Math.round((filledFields / totalFields) * 100)
   }
-
-
   
   const handleSubmit = () => {
 
@@ -266,8 +279,31 @@ const [uploadProgress, setUploadProgress] = useState(0);
   }, 2000); 
   }
 
+  // Function to disable input feilds 
+  const shouldDisableField = (fieldValue: string) => {
+  return ( uploadProgress === 100 ) && !fieldValue;
+  }
+
   return (
     <div className="relative pt-20 min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+
+      {/* loading component */}
+      {isLoading && (
+      <div className="fixed inset-0 bg-background/90 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg font-medium">Processing your ESG document...</p>
+          <p className="text-muted-foreground">
+            Extracting data and populating fields ({uploadProgress}%)
+          </p>
+          <Progress 
+            value={uploadProgress} 
+            className="mt-4 w-64 mx-auto h-2" 
+          />
+        </div>
+      </div>
+      )}
+
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8 animate-fade-in">
@@ -281,13 +317,12 @@ const [uploadProgress, setUploadProgress] = useState(0);
 
         {/* Progress Bar */}
         <div className="mb-8 animate-slide-up">
-  <div className="flex justify-between items-center mb-4">
-    <span className="text-sm font-medium">Submission Progress</span>
-    <span className="text-sm text-muted-foreground">{uploadProgress}% Complete</span>
-  </div>
-  <Progress value={uploadProgress} className="h-2 transition-all duration-500" />
-</div>
-
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-sm font-medium">Submission Progress</span>
+            <span className="text-sm text-muted-foreground">{uploadProgress}% Complete</span>
+          </div>
+        <Progress value={uploadProgress} className="h-2 transition-all duration-500" />
+        </div>
 
         <div className="max-w-6xl mx-auto space-y-6">
           {sections.map((section) => (
@@ -381,6 +416,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             step="0.01"
                             value={companyGhgEmissionsPerUnitRevenue}
                             onChange={(e) => setCompanyGhgEmissionsPerUnitRevenue(e.target.value)}
+                            disabled={shouldDisableField(companyGhgEmissionsPerUnitRevenue)}
                             placeholder="Metric tons CO2e per $ revenue"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -395,6 +431,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             step="0.01"
                             value={companyEnergyConsumptionPerUnitOutput}
                             onChange={(e) => setCompanyEnergyConsumptionPerUnitOutput(e.target.value)}
+                            disabled={shouldDisableField(companyEnergyConsumptionPerUnitOutput)}
                             placeholder="kWh per unit output"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -409,6 +446,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             step="0.01"
                             value={companyWaterWithdrawalPerUnitOutput}
                             onChange={(e) => setCompanyWaterWithdrawalPerUnitOutput(e.target.value)}
+                            disabled={shouldDisableField(companyWaterWithdrawalPerUnitOutput)}
                             placeholder="Cubic meters per unit output"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -424,6 +462,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             step="0.01"
                             value={amountWasteRecycled}
                             onChange={(e) => setAmountWasteRecycled(e.target.value)}
+                            disabled={shouldDisableField(amountWasteRecycled)}
                             placeholder="Metric tons recycled"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -436,6 +475,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             step="0.01"
                             value={totalWasteGenerated}
                             onChange={(e) => setTotalWasteGenerated(e.target.value)}
+                            disabled={shouldDisableField(totalWasteGenerated)}
                             placeholder="Metric tons total waste"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -449,6 +489,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={environmentalFinesPenaltyWeight}
                             onChange={(e) => setEnvironmentalFinesPenaltyWeight(e.target.value)}
+                            disabled={shouldDisableField(environmentalFinesPenaltyWeight)}
                             placeholder="Weighted score (0-10)"
                             min="0"
                             max="10"
@@ -466,6 +507,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             step="0.01"
                             value={renewableEnergyConsumption}
                             onChange={(e) => setRenewableEnergyConsumption(e.target.value)}
+                            disabled={shouldDisableField(renewableEnergyConsumption)}
                             placeholder="MWh from renewables"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -478,6 +520,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             step="0.01"
                             value={totalEnergyConsumption}
                             onChange={(e) => setTotalEnergyConsumption(e.target.value)}
+                            disabled={shouldDisableField(totalEnergyConsumption)}
                             placeholder="Total MWh consumed"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -490,6 +533,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             step="0.1"
                             value={biodiversityImpactScore}
                             onChange={(e) => setBiodiversityImpactScore(e.target.value)}
+                            disabled={shouldDisableField(biodiversityImpactScore)}
                             placeholder="Score (0-10)"
                             min="0"
                             max="10"
@@ -508,6 +552,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={climateRiskMitigationMeasuresImplemented}
                             onChange={(e) => setClimateRiskMitigationMeasuresImplemented(e.target.value)}
+                            disabled={shouldDisableField(climateRiskMitigationMeasuresImplemented)}
                             placeholder="Number of measures"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -519,6 +564,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={totalApplicableMeasures}
                             onChange={(e) => setTotalApplicableMeasures(e.target.value)}
+                            disabled={shouldDisableField(totalApplicableMeasures)}
                             placeholder="Total possible measures"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -538,6 +584,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             step="0.1"
                             value={employeeTurnoverRate}
                             onChange={(e) => setEmployeeTurnoverRate(e.target.value)}
+                            disabled={shouldDisableField(employeeTurnoverRate)}
                             placeholder="Annual turnover percentage"
                             min="0"
                             max="100"
@@ -552,6 +599,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             step="0.01"
                             value={companyInjuryRate}
                             onChange={(e) => setCompanyInjuryRate(e.target.value)}
+                            disabled={shouldDisableField(companyInjuryRate)}
                             placeholder="Injuries per 100 employees"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -563,6 +611,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={numberDiverseEmployees}
                             onChange={(e) => setNumberDiverseEmployees(e.target.value)}
+                            disabled={shouldDisableField(numberDiverseEmployees)}
                             placeholder="Count of diverse employees"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -577,6 +626,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={totalEmployees}
                             onChange={(e) => setTotalEmployees(e.target.value)}
+                            disabled={shouldDisableField(totalEmployees)}
                             placeholder="Total employee count"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -593,6 +643,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             step="0.01"
                             value={amountInvestedCommunityPrograms}
                             onChange={(e) => setAmountInvestedCommunityPrograms(e.target.value)}
+                            disabled={shouldDisableField(amountInvestedCommunityPrograms)}
                             placeholder="Dollar amount"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -607,6 +658,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={netPromoterScore}
                             onChange={(e) => setNetPromoterScore(e.target.value)}
+                            disabled={shouldDisableField(netPromoterScore)}
                             placeholder="Score (-100 to 100)"
                             min="-100"
                             max="100"
@@ -625,6 +677,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={numberReportedViolationsSeverityWeight}
                             onChange={(e) => setNumberReportedViolationsSeverityWeight(e.target.value)}
+                            disabled={shouldDisableField(numberReportedViolationsSeverityWeight)}
                             placeholder="Weighted score (0-10)"
                             min="0"
                             max="10"
@@ -641,6 +694,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             step="0.1"
                             value={avgTrainingHoursPerEmployee}
                             onChange={(e) => setAvgTrainingHoursPerEmployee(e.target.value)}
+                            disabled={shouldDisableField(avgTrainingHoursPerEmployee)}
                             placeholder="Hours per employee per year"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -659,6 +713,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={numberIndependentDirectors}
                             onChange={(e) => setNumberIndependentDirectors(e.target.value)}
+                            disabled={shouldDisableField(numberIndependentDirectors)}
                             placeholder="Count of independent directors"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -670,6 +725,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={totalNumberDirectors}
                             onChange={(e) => setTotalNumberDirectors(e.target.value)}
+                            disabled={shouldDisableField(totalNumberDirectors)}
                             placeholder="Total board members"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -682,6 +738,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             step="0.1"
                             value={ceoPayRatio}
                             onChange={(e) => setCeoPayRatio(e.target.value)}
+                            disabled={shouldDisableField(ceoPayRatio)}
                             placeholder="Ratio of CEO to median worker pay"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -698,6 +755,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={numberIndependentAuditCommitteeMembers}
                             onChange={(e) => setNumberIndependentAuditCommitteeMembers(e.target.value)}
+                            disabled={shouldDisableField(numberIndependentAuditCommitteeMembers)}
                             placeholder="Count of independent members"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -709,6 +767,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={totalAuditCommitteeMembers}
                             onChange={(e) => setTotalAuditCommitteeMembers(e.target.value)}
+                            disabled={shouldDisableField(totalAuditCommitteeMembers)}
                             placeholder="Total committee members"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -722,6 +781,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={numberShareholderFriendlyPoliciesImplemented}
                             onChange={(e) => setNumberShareholderFriendlyPoliciesImplemented(e.target.value)}
+                            disabled={shouldDisableField(numberShareholderFriendlyPoliciesImplemented)}
                             placeholder="Number of policies"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -736,6 +796,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={totalNumberEvaluatedPolicies}
                             onChange={(e) => setTotalNumberEvaluatedPolicies(e.target.value)}
+                            disabled={shouldDisableField(totalNumberEvaluatedPolicies)}
                             placeholder="Total policies evaluated"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -747,6 +808,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={numberDisclosedEsgMetrics}
                             onChange={(e) => setNumberDisclosedEsgMetrics(e.target.value)}
+                            disabled={shouldDisableField(numberDisclosedEsgMetrics)}
                             placeholder="Metrics publicly disclosed"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -758,6 +820,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={totalNumberRelevantEsgMetrics}
                             onChange={(e) => setTotalNumberRelevantEsgMetrics(e.target.value)}
+                            disabled={shouldDisableField(totalNumberRelevantEsgMetrics)}
                             placeholder="Total applicable metrics"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -774,6 +837,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={numberCorruptionIncidentsSeverityWeight}
                             onChange={(e) => setNumberCorruptionIncidentsSeverityWeight(e.target.value)}
+                            disabled={shouldDisableField(numberCorruptionIncidentsSeverityWeight)}
                             placeholder="Weighted score (0-10)"
                             min="0"
                             max="10"
@@ -787,6 +851,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={numberDisclosedTaxJurisdictions}
                             onChange={(e) => setNumberDisclosedTaxJurisdictions(e.target.value)}
+                            disabled={shouldDisableField(numberDisclosedTaxJurisdictions)}
                             placeholder="Jurisdictions disclosed"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
@@ -798,6 +863,7 @@ const [uploadProgress, setUploadProgress] = useState(0);
                             type="number"
                             value={totalNumberOperatingJurisdictions}
                             onChange={(e) => setTotalNumberOperatingJurisdictions(e.target.value)}
+                            disabled={shouldDisableField(totalNumberOperatingJurisdictions)}
                             placeholder="Total jurisdictions operated in"
                             className="transition-all duration-300 focus:ring-2 focus:ring-primary/50"
                           />
