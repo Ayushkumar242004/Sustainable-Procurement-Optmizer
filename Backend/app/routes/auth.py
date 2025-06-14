@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 from app.schemas.auth_schemas import CompanyRegister, SupplierRegister, EmployeeRegister, EmployeeLogin
 from app.auth.auth_handler import hash_password, verify_password
 from app.auth.jwt import create_jwt_token
-from app.database import db
+from app.database import db 
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 

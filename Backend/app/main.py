@@ -374,3 +374,14 @@ async def calculate_final_esg_scores(payload: ESGInput):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# ------------------- ESG Analysis -------------------
+
+@app.get("/api/suppliers")
+async def get_all_suppliers():
+    try:
+        cursor = db.suppliers.find({}, {"_id": 0, "id" : 1 ,"company_name": 1, "esg_upload_status": 1})
+        suppliers = await cursor.to_list(length=None)
+        return {"suppliers": suppliers}
+    except Exception as e:
+        return {"error": str(e)}
