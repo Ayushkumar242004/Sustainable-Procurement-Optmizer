@@ -161,6 +161,12 @@ const [isLoading, setIsLoading] = useState(false);
       setUploadProgress(10); 
       const formData = new FormData()
       formData.append("file", file)
+      
+      // adding email to the body to query the supplier from the database
+      const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+      const email = userData.email || "";
+      formData.append("email", email);
+
       console.log("Uploading file:", file.name);
 
       setUploadProgress(30);
