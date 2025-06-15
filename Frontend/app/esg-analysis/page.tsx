@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -22,16 +22,9 @@ import {
 } from "recharts"
 import { Leaf, Users, Shield, AlertCircle, CheckCircle, Star, TrendingUp, Award, Filter, Search } from "lucide-react"
 import { Chatbot } from "@/components/chatbot"
-import { useEffect } from "react";
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
-const suppliers = [
-  { id: 1, name: "GreenTech Solutions" },
-  { id: 2, name: "EcoManufacturing Co" },
-  { id: 3, name: "SustainableParts Inc" },
-  { id: 4, name: "CleanEnergy Corp" },
-]
 
 // Initialize all scores with default values
 const initialEsgScores = {
@@ -134,9 +127,8 @@ const pieData = [
 const supplierRankings = [
   {
     id: 1,
-    name: "GreenTech Solutions",
+    name: "Frod",
     rank: 1,
-    overallScore: 92,
     esgScore: 90,
     costScore: 85,
     riskLevel: "Low",
@@ -150,56 +142,7 @@ const supplierRankings = [
       "Enhance supply chain transparency",
       "Implement circular economy practices",
     ],
-  },
-  {
-    id: 2,
-    name: "EcoManufacturing Co",
-    rank: 2,
-    overallScore: 88,
-    esgScore: 87,
-    costScore: 82,
-    riskLevel: "Low",
-    certifications: ["ISO 14001", "LEED Gold"],
-    location: "Ontario, Canada",
-    category: "Manufacturing",
-    trend: "up",
-    improvement: "+3%",
-    recommendations: [
-      "Improve water usage efficiency",
-      "Strengthen diversity programs",
-      "Enhance governance reporting",
-    ],
-  },
-  {
-    id: 3,
-    name: "SustainableParts Inc",
-    rank: 3,
-    overallScore: 85,
-    esgScore: 78,
-    costScore: 90,
-    riskLevel: "Medium",
-    certifications: ["ISO 9001", "Fair Trade"],
-    location: "Berlin, Germany",
-    category: "Components",
-    trend: "stable",
-    improvement: "0%",
-    recommendations: ["Reduce carbon footprint", "Implement better waste management", "Strengthen board independence"],
-  },
-  {
-    id: 4,
-    name: "CleanEnergy Corp",
-    rank: 4,
-    overallScore: 82,
-    esgScore: 85,
-    costScore: 75,
-    riskLevel: "Medium",
-    certifications: ["ISO 50001", "Green Energy"],
-    location: "Copenhagen, Denmark",
-    category: "Energy",
-    trend: "down",
-    improvement: "-2%",
-    recommendations: ["Optimize cost structure", "Enhance supply chain resilience", "Improve stakeholder engagement"],
-  },
+  }
 ]
 
 const betterSuppliers = [
@@ -307,6 +250,17 @@ export default function ESGAnalysis() {
   const [gScore, setGScore] = useState<number | null>(null);
   const [esgScore, setESGScore] = useState<number | null>(null);
 
+  //fetchins suppliers
+  const [suppliers, setSuppliers] = useState([]);
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      const res = await fetch("http://localhost:8000/api/suppliers");
+      const data = await res.json();
+      setSuppliers(data.suppliers);
+    };
+
+    fetchSuppliers();
+  }, []);
 
   const handleSubmit = async () => {
     try {
@@ -440,6 +394,7 @@ export default function ESGAnalysis() {
     return () => clearInterval(interval); // cleanup on unmount
   }, []);
 
+  // calculating scores
   const calculateScores = async () => {
     try {
       // Step 1: Get the ESG final subfactor scores from localStorage
@@ -475,7 +430,6 @@ export default function ESGAnalysis() {
       setGScore(result.G_score);
       setESGScore(result.ESG_score);
 
-
       console.log("escore", result.E_score);
       // Step 4: Store result in localStorage
       localStorage.setItem("esg_category_scores", JSON.stringify(result));
@@ -485,8 +439,6 @@ export default function ESGAnalysis() {
       console.error("Error in calculateScores:", error);
     }
   };
-
-
 
   // Determine status for each factor
   const getStatus = (score: number) => {
@@ -526,8 +478,12 @@ export default function ESGAnalysis() {
             </SelectTrigger>
             <SelectContent>
               {suppliers.map((supplier) => (
-                <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                  {supplier.name}
+                <SelectItem
+                  key={supplier.id}
+                  value={supplier.id}
+                  disabled={supplier.esg_upload_status !== "success"}
+                >
+                  {supplier.company_name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -1075,29 +1031,29 @@ export default function ESGAnalysis() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {supplierRankings.map((supplier, index) => (
+                      { /*{supplierRankings.map((supplier, index) => ( */}
                         <motion.div
-                          key={supplier.id}
+                          key= {1}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
+                          transition={{ duration: 0.5, delay: 0.4 + 0 * 0.1 }}
                         >
                           <Card className="transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
                             <CardContent className="p-6">
                               <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center space-x-4">
                                   <div className="flex items-center space-x-2">
-                                    <div className="text-3xl font-bold text-primary">#{supplier.rank}</div>
-                                    {getTrendIcon(supplier.trend)}
+                                    <div className="text-3xl font-bold text-primary">#1</div>
+                                    { /*getTrendIcon(supplier.trend)*/}
                                   </div>
                                   <div>
-                                    <h3 className="text-xl font-semibold">{supplier.name}</h3>
+                                    <h3 className="text-xl font-semibold">Ford</h3>
                                     <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                                      <span>{supplier.location}</span>
+                                      {/* <span>{supplier.location}</span>
                                       <span>•</span>
                                       <span>{supplier.category}</span>
-                                      <span>•</span>
-                                      <span
+                                      <span>•</span> */}
+                                      {/* <span
                                         className={
                                           supplier.trend === "up"
                                             ? "text-green-600"
@@ -1107,62 +1063,62 @@ export default function ESGAnalysis() {
                                         }
                                       >
                                         {supplier.improvement}
-                                      </span>
+                                      </span> */}
                                     </div>
                                   </div>
                                 </div>
-                                <div className="text-right">
+                                {/* <div className="text-right">
                                   <div className="text-3xl font-bold text-green-600">{supplier.overallScore}</div>
                                   <div className="text-sm text-muted-foreground">Overall Score</div>
-                                </div>
+                                </div> */}
                               </div>
 
                               <div className="grid grid-cols-3 gap-4 mb-4">
                                 <div className="text-center">
-                                  <div className="text-lg font-semibold">{supplier.esgScore}</div>
+                                  <div className="text-lg font-semibold">{esgScore}</div>
                                   <div className="text-sm text-muted-foreground">ESG Score</div>
-                                  <Progress value={supplier.esgScore} className="mt-1" />
+                                  <Progress value={esgScore} className="mt-1" />
                                 </div>
-                                <div className="text-center">
+                                {/* <div className="text-center">
                                   <div className="text-lg font-semibold">{supplier.costScore}</div>
                                   <div className="text-sm text-muted-foreground">Cost Score</div>
                                   <Progress value={supplier.costScore} className="mt-1" />
-                                </div>
-                                <div className="text-center">
+                                </div> */}
+                                {/* <div className="text-center">
                                   <Badge className={getRiskColor(supplier.riskLevel)}>{supplier.riskLevel} Risk</Badge>
-                                </div>
+                                </div> */}
                               </div>
 
-                              <div className="flex flex-wrap gap-2 mb-4">
+                              {/* <div className="flex flex-wrap gap-2 mb-4">
                                 {supplier.certifications.map((cert, certIndex) => (
                                   <Badge key={certIndex} variant="secondary" className="text-xs">
                                     <Star className="h-3 w-3 mr-1" />
                                     {cert}
                                   </Badge>
                                 ))}
-                              </div>
+                              </div> */}
 
                               <Accordion type="single" collapsible>
-                                <AccordionItem value={`recommendations-${supplier.id}`} className="border-none">
+                                <AccordionItem value={`recommendations-0`} className="border-none">
                                   <AccordionTrigger className="text-sm font-medium hover:no-underline">
                                     View Improvement Recommendations
                                   </AccordionTrigger>
                                   <AccordionContent>
-                                    <div className="space-y-2">
+                                    {/* <div className="space-y-2">
                                       {supplier.recommendations.map((rec, recIndex) => (
                                         <div key={recIndex} className="flex items-center space-x-2 text-sm">
                                           <CheckCircle className="h-4 w-4 text-green-600" />
                                           <span>{rec}</span>
                                         </div>
                                       ))}
-                                    </div>
+                                    </div> */}
                                   </AccordionContent>
                                 </AccordionItem>
                               </Accordion>
                             </CardContent>
                           </Card>
                         </motion.div>
-                      ))}
+                      { /*))}*/ } 
                     </div>
                   </CardContent>
                 </Card>

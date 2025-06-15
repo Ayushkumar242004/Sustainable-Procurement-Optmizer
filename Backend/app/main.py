@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Body
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Body , Form 
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.encoders import jsonable_encoder
@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 load_dotenv()
 import google.generativeai as genai
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+from app.database import db 
 
 app = FastAPI(title="ESG Auto-Fill System", version="1.0.0")
 
@@ -74,7 +75,7 @@ async def ping_db():
 
 # ------------------- Upload ESG Report -------------------
 @app.post("/api/upload-esg-report")
-async def upload_esg_report(file: UploadFile = File(...)):
+async def upload_esg_report(file: UploadFile = File(...) , email: str = Form(...) ):
     allowed_extensions = ['.pdf', '.docx']
     file_extension = os.path.splitext(file.filename)[1].lower()
     
@@ -90,6 +91,22 @@ async def upload_esg_report(file: UploadFile = File(...)):
         result = await gemini.extract_esg_data(file_content, file.filename)
 
         logger.info(f"Extraction result: {result}")
+        
+        #extracting supplier info 
+        email_domain = email.split('@')[1] 
+        supplier = await db.suppliers.find_one( { "email_domain" : email_domain })
+        
+        if not supplier:
+            raise HTTPException(status_code=404, detail="Supplier not found")
+        
+        update_fields = {
+            "esg_upload_result": result.get("result"),
+            "esg_overall_data": result.get("overall_data"),
+            "esg_upload_status": result.get("status")
+        }
+
+        await db.suppliers.update_one({"email_domain": email_domain}, {"$set": update_fields})
+        
         return result
 
     except Exception as e:
@@ -357,3 +374,14 @@ async def calculate_final_esg_scores(payload: ESGInput):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# ------------------- ESG Analysis -------------------
+
+@app.get("/api/suppliers")
+async def get_all_suppliers():
+    try:
+        cursor = db.suppliers.find({}, {"_id": 0, "id" : 1 ,"company_name": 1, "esg_upload_status": 1})
+        suppliers = await cursor.to_list(length=None)
+        return {"suppliers": suppliers}
+    except Exception as e:
+        return {"error": str(e)}
