@@ -74,33 +74,69 @@ export function Chatbot() {
     return predefinedResponses.default
   }
 
-  const sendMessage = async () => {
-    if (!inputValue.trim()) return
+ const GEMINI_API_KEY = "AIzaSyBWY904yt5tCcUt0r4r8Ljcn3w66y3Uz_o"
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: inputValue,
-      sender: "user",
-      timestamp: new Date(),
-    }
+const sendMessage = async () => {
+  if (!inputValue.trim()) return;
 
-    setMessages((prev) => [...prev, userMessage])
-    setInputValue("")
-    setIsTyping(true)
-
-    // Simulate typing delay
-    setTimeout(() => {
-      const botResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: generateResponse(inputValue),
-        sender: "bot",
-        timestamp: new Date(),
-      }
-
-      setMessages((prev) => [...prev, botResponse])
-      setIsTyping(false)
-    }, 1000 + Math.random() * 1000)
+  const userMessage: Message = {
+    id: Date.now().toString(),
+    content: inputValue,
+    sender: "user",
+    timestamp: new Date(),
   }
+
+  setMessages((prev) => [...prev, userMessage]);
+  setInputValue("");
+  setIsTyping(true);
+
+  try {
+    const geminiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+     body: JSON.stringify({
+  contents: [
+    {
+      role: "user",
+      parts: [{ text: "You are an ESG assistant named Sustain Pro. Provide helpful, factual, and concise answers related to ESG, sustainability, and reporting. Give the answer in 2-3 lines only for general questions. Give the response in no styling (non-bold, non-italic) format." }]
+    },
+    {
+      role: "user",
+      parts: [{ text: userMessage.content }]
+    }
+  ]
+})
+
+    });
+
+    const data = await geminiResponse.json();
+
+    const content = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "Sorry, I couldn't understand that.";
+
+    const botResponse: Message = {
+      id: (Date.now() + 1).toString(),
+      content,
+      sender: "bot",
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, botResponse]);
+  } catch (error) {
+    console.error("Error calling Gemini:", error);
+    const errorMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      content: "Something went wrong while getting a response. Please try again later.",
+      sender: "bot",
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, errorMessage]);
+  }
+
+  setIsTyping(false);
+};
+
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -161,9 +197,7 @@ export function Chatbot() {
           ) : (
             <MessageCircle className="h-6 w-6 text-white" />
           )}
-          {!isOpen && (
-            <div className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full animate-pulse" />
-          )}
+         
         </Button>
       </div>
 
@@ -347,44 +381,3 @@ export function Chatbot() {
     </>
   )
 }
-
-// Add these animations to your global CSS
-/*
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes pop-in {
-  0% {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.02);
-    opacity: 0.5;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.3s ease-out forwards;
-}
-
-.animate-pop-in {
-  animation: pop-in 0.2s ease-out forwards;
-}
-
-.animate-fade-in {
-  animation: fade-in-up 0.2s ease-out forwards;
-}
-*/
