@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Body , Form 
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse, StreamingResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,6 +10,7 @@ import os
 import requests
 import json
 from .services.gemini_service import gemini_service
+
 # route for testing mongo connection 
 from app.routes import test 
 from app.routes import auth 
@@ -19,6 +20,23 @@ load_dotenv()
 import google.generativeai as genai
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 from app.database import db 
+from typing import Dict, Optional, List
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+
+
+from typing import Dict, Optional
+import json
+import os
+from datetime import datetime
+from fpdf import FPDF
+import tempfile
+from fastapi import APIRouter
+
+router = APIRouter()
 
 app = FastAPI(title="ESG Auto-Fill System", version="1.0.0")
 
@@ -27,8 +45,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 origins = [
-    "http://localhost:3000",  # frontend dev server
-    # Add your production domain here when deploying
+    "http://localhost:3000", 
 ]
 
 
@@ -385,3 +402,276 @@ async def get_all_suppliers():
         return {"suppliers": suppliers}
     except Exception as e:
         return {"error": str(e)}
+    
+class GeminiRecommendationRequest(BaseModel):
+    prompt: str
+
+@app.post("/api/gemini-recommendations-esgScore")
+async def gemini_recommendations(request: GeminiRecommendationRequest):
+    """
+    Accepts a prompt (should include esg_category_scores in the text), sends to Gemini, and returns improvement suggestions as points.
+    """
+    import re
+
+    try:
+        # Compose the prompt for Gemini
+        full_prompt = (
+            f"You are an expert ESG consultant. "
+            f"Given the following ESG category scores, suggest actionable techniques to improve these scores. "
+            f"Respond as a concise list of improvement points, each as a separate bullet:\n\n. Response everything in normal text, no bold or italic test."
+            f"Give response in three different points, Environmental, Social, Governance. In these points, make subpoints which suggest improvements."
+            f"Give only normal text with no bold words, no special characters."
+            f"{request.prompt}"
+        )
+
+        # Use Gemini 1.5 Flash API (as in your other endpoints)
+        response = requests.post(
+            url="https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+            params={"key": os.getenv("GEMINI_API_KEY")},
+            headers={"Content-Type": "application/json"},
+            json={
+                "contents": [{"role": "user", "parts": [{"text": full_prompt}]}]
+            }
+        )
+
+        if response.status_code != 200:
+            raise HTTPException(status_code=500, detail="Gemini API failed: " + response.text)
+
+        gemini_output = response.json()
+        reply_content = gemini_output["candidates"][0]["content"]["parts"][0]["text"]
+
+        # Split the response into points (handles bullets, numbers, or newlines)
+        points = [
+            p.strip("•- \n\r\t")
+            for p in re.split(r"(?:\n|^)[•\-–\d.]+\s*", reply_content)
+            if p.strip()
+        ]
+
+        return {"recommendations": points}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error calling Gemini: {str(e)}")
+    
+   
+class GeminiRecommendationRequest(BaseModel):
+    prompt: str
+
+@app.post("/api/gemini-recommendations-eScore")
+async def gemini_recommendations(request: GeminiRecommendationRequest):
+    """
+    Accepts a prompt (should include esg_category_scores in the text), sends to Gemini, and returns improvement suggestions as points.
+    """
+    import re
+
+    try:
+        # Compose the prompt for Gemini
+        full_prompt = (
+            f"You are an expert ESG consultant. "
+            f"Given the following Environmental scores, suggest actionable techniques to improve these scores. "
+            f"Respond as a concise list of improvement points, each as a separate bullet:\n\n. Response everything in normal text, no bold or italic test."
+            f"Give response in three different points, Environmental, Social, Governance. In these points, make subpoints which suggest improvements."
+            f"Give only normal text with no bold words, no special characters."
+            f"{request.prompt}"
+        )
+
+        # Use Gemini 1.5 Flash API (as in your other endpoints)
+        response = requests.post(
+            url="https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+            params={"key": os.getenv("GEMINI_API_KEY")},
+            headers={"Content-Type": "application/json"},
+            json={
+                "contents": [{"role": "user", "parts": [{"text": full_prompt}]}]
+            }
+        )
+
+        if response.status_code != 200:
+            raise HTTPException(status_code=500, detail="Gemini API failed: " + response.text)
+
+        gemini_output = response.json()
+        reply_content = gemini_output["candidates"][0]["content"]["parts"][0]["text"]
+
+        # Split the response into points (handles bullets, numbers, or newlines)
+        points = [
+            p.strip("•- \n\r\t")
+            for p in re.split(r"(?:\n|^)[•\-–\d.]+\s*", reply_content)
+            if p.strip()
+        ]
+
+        return {"recommendations": points}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error calling Gemini: {str(e)}")
+    
+
+@app.post("/api/gemini-recommendations-sScore")
+async def gemini_recommendations(request: GeminiRecommendationRequest):
+    """
+    Accepts a prompt (should include esg_category_scores in the text), sends to Gemini, and returns improvement suggestions as points.
+    """
+    import re
+
+    try:
+        # Compose the prompt for Gemini
+        full_prompt = (
+            f"You are an expert ESG consultant. "
+            f"Given the following Social scores, suggest actionable techniques to improve these scores. "
+            f"Respond as a concise list of improvement points, each as a separate bullet:\n\n. Response everything in normal text, no bold or italic test."
+            f"Give response in three different points, Environmental, Social, Governance. In these points, make subpoints which suggest improvements."
+            f"Give only normal text with no bold words, no special characters."
+            f"{request.prompt}"
+        )
+
+        # Use Gemini 1.5 Flash API (as in your other endpoints)
+        response = requests.post(
+            url="https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+            params={"key": os.getenv("GEMINI_API_KEY")},
+            headers={"Content-Type": "application/json"},
+            json={
+                "contents": [{"role": "user", "parts": [{"text": full_prompt}]}]
+            }
+        )
+
+        if response.status_code != 200:
+            raise HTTPException(status_code=500, detail="Gemini API failed: " + response.text)
+
+        gemini_output = response.json()
+        reply_content = gemini_output["candidates"][0]["content"]["parts"][0]["text"]
+
+        # Split the response into points (handles bullets, numbers, or newlines)
+        points = [
+            p.strip("•- \n\r\t")
+            for p in re.split(r"(?:\n|^)[•\-–\d.]+\s*", reply_content)
+            if p.strip()
+        ]
+
+        return {"recommendations": points}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error calling Gemini: {str(e)}")
+    
+
+@app.post("/api/gemini-recommendations-gScore")
+async def gemini_recommendations(request: GeminiRecommendationRequest):
+    """
+    Accepts a prompt (should include esg_category_scores in the text), sends to Gemini, and returns improvement suggestions as points.
+    """
+    import re
+
+    try:
+        # Compose the prompt for Gemini
+        full_prompt = (
+            f"You are an expert ESG consultant. "
+            f"Given the following Governance scores, suggest actionable techniques to improve these scores. "
+            f"Respond as a concise list of improvement points, each as a separate bullet:\n\n. Response everything in normal text, no bold or italic test."
+            f"Give response in three different points, Environmental, Social, Governance. In these points, make subpoints which suggest improvements."
+            f"Give only normal text with no bold words, no special characters."
+            f"{request.prompt}"
+        )
+
+        # Use Gemini 1.5 Flash API (as in your other endpoints)
+        response = requests.post(
+            url="https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+            params={"key": os.getenv("GEMINI_API_KEY")},
+            headers={"Content-Type": "application/json"},
+            json={
+                "contents": [{"role": "user", "parts": [{"text": full_prompt}]}]
+            }
+        )
+
+        if response.status_code != 200:
+            raise HTTPException(status_code=500, detail="Gemini API failed: " + response.text)
+
+        gemini_output = response.json()
+        reply_content = gemini_output["candidates"][0]["content"]["parts"][0]["text"]
+
+        # Split the response into points (handles bullets, numbers, or newlines)
+        points = [
+            p.strip("•- \n\r\t")
+            for p in re.split(r"(?:\n|^)[•\-–\d.]+\s*", reply_content)
+            if p.strip()
+        ]
+
+        return {"recommendations": points}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error calling Gemini: {str(e)}")
+    
+
+class ESGReportInput(BaseModel):
+    company_name: str
+    esg_category_scores: Dict[str, float]
+    esg_final_subfactor_scores: Dict[str, Dict[str, float]]
+    recommendations: Optional[List[str]] = None  # Flat list of strings
+
+@app.post("/generate-esg-report")
+async def generate_esg_report(data: ESGReportInput):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    # Title
+    title_style = ParagraphStyle(
+        name="TitleStyle",
+        fontSize=20,
+        leading=24,
+        spaceAfter=20,
+        alignment=1,  # Center
+        textColor=colors.HexColor("#0B3954"),
+    )
+    elements.append(Paragraph(f"ESG Evaluation Report - {data.company_name}", title_style))
+    elements.append(Spacer(1, 12))
+
+    # Category Scores Table
+    elements.append(Paragraph("1. ESG Category Scores", styles["Heading2"]))
+    cat_table_data = [["Category", "Score"]]
+    for category, score in data.esg_category_scores.items():
+        cat_table_data.append([category, f"{score:.2f} / 100"])
+
+    cat_table = Table(cat_table_data, hAlign='LEFT', colWidths=[200, 200])
+    cat_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#0B3954")),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 0.8, colors.grey),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    ]))
+    elements.append(cat_table)
+    elements.append(Spacer(1, 16))
+
+    # Subfactor Scores
+    elements.append(Paragraph("2. ESG Subfactor Scores", styles["Heading2"]))
+    for category, subfactors in data.esg_final_subfactor_scores.items():
+        elements.append(Paragraph(f"{category}", styles["Heading3"]))
+        sub_table_data = [["Subfactor", "Score"]]
+        for subfactor, score in subfactors.items():
+            sub_table_data.append([subfactor, f"{score:.2f} / 100"])
+
+        sub_table = Table(sub_table_data, hAlign='LEFT', colWidths=[250, 150])
+        sub_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ]))
+        elements.append(sub_table)
+        elements.append(Spacer(1, 12))
+
+    # Recommendations
+    if data.recommendations:
+        elements.append(Paragraph("3. Recommended Improvements", styles["Heading2"]))
+        for idx, tip in enumerate(data.recommendations, start=1):
+            elements.append(Paragraph(f"{idx}. {tip}", styles["BodyText"]))
+        elements.append(Spacer(1, 16))
+
+    # Footer
+    elements.append(Spacer(1, 20))
+    elements.append(Paragraph("Generated by Sustainable Procurement Optimizer", styles["Italic"]))
+
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+    return StreamingResponse(buffer, media_type='application/pdf', headers={
+        "Content-Disposition": f"attachment; filename={data.company_name}_ESG_Report.pdf"
+    })

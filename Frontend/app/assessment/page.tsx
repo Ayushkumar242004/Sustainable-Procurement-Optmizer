@@ -90,10 +90,7 @@ const radarData = [
 // Reports Data
 const reportTemplates = [
   { id: 1, name: "ESG Performance Report", type: "Monthly", lastGenerated: "2024-01-15", status: "Ready" },
-  { id: 2, name: "Supplier Risk Assessment", type: "Quarterly", lastGenerated: "2024-01-10", status: "Pending" },
-  { id: 3, name: "Sustainability Dashboard", type: "Weekly", lastGenerated: "2024-01-18", status: "Ready" },
-  { id: 4, name: "Compliance Audit Report", type: "Annual", lastGenerated: "2023-12-31", status: "Overdue" },
-  { id: 5, name: "Cost-Benefit Analysis", type: "Monthly", lastGenerated: "2024-01-12", status: "Ready" },
+ 
 ]
 
 const performanceTrends = [
@@ -209,10 +206,79 @@ export default function AssessmentPage() {
     // Simulate report generation
   }
 
-  const downloadReport = (reportId: number) => {
-    console.log(`Downloading report ${reportId}`)
-    // Simulate report download
+  const downloadReport = async (reportId: number) => {
+  try {
+    // 1. Extract data from localStorage
+    const company_name =  "Supplier";
+    const categoryScoresRaw = localStorage.getItem("esg_category_scores");
+    const subfactorScoresRaw = localStorage.getItem("esg_final_subfactor_scores");
+    const optimizationRaw = localStorage.getItem("optimization");
+
+    if (!categoryScoresRaw || !subfactorScoresRaw) {
+      console.error("Missing ESG data in localStorage");
+      alert("ESG score data is missing. Please calculate scores before downloading the report.");
+      return;
+    }
+
+    let recommendationsRaw = "";
+    if (optimizationRaw) {
+      try {
+        const optimizationObj = JSON.parse(optimizationRaw);
+        if (Array.isArray(optimizationObj.recommendations)) {
+          // Remove special characters from each recommendation
+          const cleaned = optimizationObj.recommendations.map((rec: string) =>
+            rec.replace(/[^\w\s.,:()-]/g, "").trim()
+          );
+          recommendationsRaw = JSON.stringify(cleaned);
+        }
+      } catch (e) {
+        recommendationsRaw = "";
+      }
+    }
+
+    const esg_category_scores = JSON.parse(categoryScoresRaw);
+    const esg_final_subfactor_scores = JSON.parse(subfactorScoresRaw);
+const recommendations = recommendationsRaw ? JSON.parse(recommendationsRaw) : [];
+
+
+    // 2. Prepare payload
+    const payload = {
+      company_name,
+      esg_category_scores,
+      esg_final_subfactor_scores,
+      recommendations,
+    };
+
+    // 3. Send request to backend
+    const response = await fetch("http://localhost:8000/generate-esg-report", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+    console.log("Response status:", response);
+    if (!response.ok) {
+      throw new Error("Failed to generate report");
+    }
+
+    // 4. Convert response to blob and download
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${company_name}_ESG_Report.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+  } catch (error) {
+    console.error("Error downloading report:", error);
+    alert("An error occurred while generating the report.");
   }
+};
+
 
   return (
     <div className="relative pt-20 min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
@@ -246,9 +312,6 @@ export default function AssessmentPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Reduce tab width so all 6 tabs fit in a line */}
           <TabsList className="flex w-full justify-between gap-2">
-            <TabsTrigger value="validation" className="flex-1 min-w-5 px-2 py-1 text-xs">
-              Validation
-            </TabsTrigger>
             <TabsTrigger value="scoring" className="flex-1 min-w-5 px-2 py-1 text-xs">
               Scoring
             </TabsTrigger>
@@ -261,98 +324,12 @@ export default function AssessmentPage() {
             <TabsTrigger value="ai" className="flex-1 min-w-5 px-2 py-1 text-xs">
               AI Analysis
             </TabsTrigger>
-            <TabsTrigger value="reports" className="flex-1 min-w-5 px-2 py-1 text-xs">
-              Reports
-            </TabsTrigger>
+           
           </TabsList>
           
 
 
-          <TabsContent value="validation" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-2xl flex items-center">
-                      <CheckCircle className="h-6 w-6 mr-3 text-primary" />
-                      Validation Process
-                    </CardTitle>
-                    <CardDescription>Real-time validation of submitted ESG data with automated checks</CardDescription>
-                  </div>
-                  <Button onClick={startValidation} disabled={isValidating} className="flex items-center space-x-2">
-                    <RefreshCw className={`h-4 w-4 ${isValidating ? "animate-spin" : ""}`} />
-                    <span>{isValidating ? "Validating..." : "Start Validation"}</span>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Overall Progress</span>
-                      <span>{Math.round(validationProgress)}%</span>
-                    </div>
-                    <Progress value={validationProgress} className="h-3" />
-                  </div>
-
-                  <div className="grid gap-4">
-                    {validationSteps.map((step, index) => (
-                      <div
-                        key={step.id}
-                        className={`flex items-center justify-between p-4 rounded-lg border transition-all duration-500 ${
-                          step.status === "completed"
-                            ? "bg-green-50 dark:bg-green-900/20 border-green-200"
-                            : step.status === "in-progress"
-                              ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200"
-                              : "bg-muted/50 border-muted"
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              step.status === "completed"
-                                ? "bg-green-600 text-white"
-                                : step.status === "in-progress"
-                                  ? "bg-blue-600 text-white"
-                                  : "bg-muted text-muted-foreground"
-                            }`}
-                          >
-                            {step.status === "completed" ? (
-                              <CheckCircle className="h-4 w-4" />
-                            ) : step.status === "in-progress" ? (
-                              <RefreshCw className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <div className="w-2 h-2 bg-current rounded-full" />
-                            )}
-                          </div>
-                          <div>
-                            <div className="font-medium">{step.name}</div>
-                            <div className="text-sm text-muted-foreground">Estimated time: {step.duration}</div>
-                          </div>
-                        </div>
-                        <Badge
-                          variant={
-                            step.status === "completed"
-                              ? "default"
-                              : step.status === "in-progress"
-                                ? "secondary"
-                                : "outline"
-                          }
-                        >
-                          {step.status === "completed"
-                            ? "Completed"
-                            : step.status === "in-progress"
-                              ? "In Progress"
-                              : "Pending"}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
+ 
          
 <TabsContent value="scoring" className="space-y-6">
   <Card>
@@ -688,87 +665,8 @@ export default function AssessmentPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
-          </TabsContent>
 
-
-          <TabsContent value="reports" className="space-y-6">
-            {/* KPI Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {kpiMetrics.map((kpi, index) => (
-                <Card key={index}>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">{kpi.name}</p>
-                        <p className="text-2xl font-bold">{kpi.value}</p>
-                        <p className="text-xs text-muted-foreground">Target: {kpi.target}</p>
-                      </div>
-                      <div
-                        className={`p-2 rounded-full ${kpi.trend === "up" ? "bg-green-100 dark:bg-green-900/20" : "bg-gray-100 dark:bg-gray-900/20"}`}
-                      >
-                        <TrendingUp className={`h-4 w-4 ${kpi.trend === "up" ? "text-green-600" : "text-gray-600"}`} />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Performance Trends */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl flex items-center">
-                  <TrendingUp className="h-6 w-6 mr-3 text-primary" />
-                  Performance Trends
-                </CardTitle>
-                <CardDescription>6-month performance overview across key metrics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={performanceTrends}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area type="monotone" dataKey="esg" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.6} />
-                    <Area
-                      type="monotone"
-                      dataKey="cost"
-                      stackId="2"
-                      stroke="#3b82f6"
-                      fill="#3b82f6"
-                      fillOpacity={0.6}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="risk"
-                      stackId="3"
-                      stroke="#8b5cf6"
-                      fill="#8b5cf6"
-                      fillOpacity={0.6}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-                <div className="flex justify-center space-x-6 mt-4">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-green-600 rounded-full" />
-                    <span className="text-sm">ESG Score</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-blue-600 rounded-full" />
-                    <span className="text-sm">Cost Efficiency</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-purple-600 rounded-full" />
-                    <span className="text-sm">Risk Score</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Report Templates */}
-            <Card>
+               <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -813,10 +711,7 @@ export default function AssessmentPage() {
                       <div className="flex items-center space-x-3">
                         <Badge className={getStatusColor(report.status)}>{report.status}</Badge>
                         <div className="flex space-x-2">
-                          <Button variant="outline" size="sm" onClick={() => generateReport(report.id)}>
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Generate
-                          </Button>
+                         
                           <Button
                             variant="outline"
                             size="sm"
@@ -833,7 +728,11 @@ export default function AssessmentPage() {
                 </div>
               </CardContent>
             </Card>
+            </Card>
           </TabsContent>
+
+
+          
         </Tabs>
       </div>
       <Chatbot />
