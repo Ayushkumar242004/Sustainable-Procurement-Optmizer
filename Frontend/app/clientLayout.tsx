@@ -25,28 +25,30 @@ export default function ClientLayout({
 }) {
   const router = useRouter()
   const pathname = usePathname()
+  const isAuthPage = pathname.startsWith("/auth")
 
- useEffect(() => {
-  const userData = localStorage.getItem("userData")
-  const publicPages = ["/auth"]
+//  useEffect(() => { 
+//   const userData = localStorage.getItem("userData")
+//   const publicPages = ["/auth"]
 
-  // If user data doesn't exist and trying to access a protected page
-  if (!userData && !publicPages.includes(pathname)) {
-    router.push("/auth")
-  }
+//   // If user data doesn't exist and trying to access a protected page
+//   if (!userData && !publicPages.includes(pathname)) {
+//     router.push("/auth")
+//   }
 
   // we can add role-based redirects here if needed later on
-  }, [router, pathname])
-  
+  // }, [router, pathname])
+
 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${poppins.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange={false}>
           <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-            <Navigation />
+            { /* Conditionally render for auth page*/}
+            { !isAuthPage && <Navigation />}
             <main className="relative">{children}</main>
-            <Footer />
+            { !isAuthPage && <Footer />}
           </div>
           <Toaster />
         </ThemeProvider>

@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Separator } from "@/components/ui/separator"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 import {
   LineChart,
   Line,
@@ -37,6 +39,7 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Chatbot } from "@/components/chatbot"
+import { useAuth } from "@/hooks/use-auth"
 
 const values = [
   {
@@ -64,6 +67,11 @@ const values = [
 
 const team = [
   {
+  name: "Samridhi Jha",
+  role: "COO",
+  bio: "Operations leader with extensive experience in scaling businesses, optimizing internal processes, and driving cross-functional collaboration."
+  },
+  {
     name: "Ayush Kumar",
     role: "CEO & Founder",
     bio: "Former sustainability director at Fortune 500 companies with 15+ years of experience.",
@@ -77,7 +85,7 @@ const team = [
     name: "Rahul Jambulkar",
     role: "Head of ESG",
     bio: "Environmental scientist and ESG expert with PhD in Sustainable Business Practices.",
-  },
+  }
 ]
 
 const suppliers = [
@@ -302,6 +310,7 @@ export default function Dashboard() {
   const [selectedSupplier, setSelectedSupplier] = useState("greentech")
   const [userRole, setUserRole] = useState<string>("")
   const router = useRouter()
+  const { userData , isAuthenticated } = useAuth( ) ; 
 
   useEffect(() => {
     const userData = localStorage.getItem("userData")
@@ -485,7 +494,7 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
               {team.map((member, index) => (
                 <Card
                   key={index}
@@ -787,8 +796,21 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             </div>
+
+            
           </section>
         )}
+
+        {!isAuthenticated && (
+          <section className="flex justify-center items-center pb-10 ">
+            <Link href="/auth">
+              <Button className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 transition-all duration-300 hover:scale-105 px-8 py-4 text-xl shadow-xl w-80 h-14 rounded-xl">
+                Get Started
+              </Button>
+            </Link>
+          </section>
+        )}
+
       </div>
       <Chatbot />
     </div>

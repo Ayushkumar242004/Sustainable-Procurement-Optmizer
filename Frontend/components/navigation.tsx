@@ -10,13 +10,14 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Menu, Leaf, Home, Upload, Sliders, Database, ClipboardCheck, Bell, LogOut, Building, Mail } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/hooks/use-auth"
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Data Submission", href: "/data-submission", icon: Upload },
   { name: "ESG Analysis", href: "/esg-analysis", icon: Leaf },
+  { name: "Analytics", href: "/assessment", icon: ClipboardCheck },
   { name: "TradeOff Simulator", href: "/trade-off-simulator", icon: Sliders },
-  { name: "Analysis", href: "/assessment", icon: ClipboardCheck },
   { name: "Supplier Directory", href: "/supplier-directory", icon: Database },
   { name: "Monitoring", href: "/monitoring", icon: Bell },
 ]
@@ -25,15 +26,15 @@ export function Navigation() {
   const pathname = usePathname()
   const router = useRouter()
   const [isScrolled, setIsScrolled] = useState(false)
-  const [userData, setUserData] = useState<any>(null)
+  const { userData , isAuthenticated } = useAuth() // Using our hook
 
-  // useEffect(() => {
-  //   const handleScroll = () => {
-  //     setIsScrolled(window.scrollY > 20)
-  //   }
-  //   window.addEventListener("scroll", handleScroll)
-  //   return () => window.removeEventListener("scroll", handleScroll)
-  // }, [])
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10)
+    }
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   // useEffect(() => {
   //   // Check for user data in localStorage
@@ -70,8 +71,10 @@ export function Navigation() {
   return (
     <nav
       className={cn(
-        "fixed top-0 z-50 w-full transition-all duration-300",
-        isScrolled ? "bg-background/80 backdrop-blur-md border-b shadow-sm" : "bg-transparent",
+  "fixed top-0 z-50 w-full transition-all duration-300 border-b",
+        isScrolled 
+          ? "bg-background/95 backdrop-blur-md shadow-sm"
+          : "bg-background/80 backdrop-blur-md"
       )}
     >
       <div className="container mx-auto px-4">
@@ -95,7 +98,7 @@ export function Navigation() {
                 href={item.href}
                 className={cn(
                   "relative text-sm font-medium transition-all duration-200 hover:text-primary",
-                  pathname === item.href ? "text-primary" : "text-muted-foreground hover:text-foreground",
+                  pathname === item.href ? "text-primary font-semibold" : "text-foreground/90 hover:text-foreground",
                 )}
               >
                 {item.name}
@@ -109,50 +112,38 @@ export function Navigation() {
           {/* User Profile and Theme Toggle */}
           <div className="flex items-center space-x-4">
             <ThemeToggle />
-
-            {userData && (
+            {isAuthenticated ? (
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                        {getInitials(userData.contactName)}
+                      <AvatarFallback className="  bg-primary/10 text-primary font-semibold
+              dark:bg-white/10 dark:text-white">
+                        {userData?.email?.charAt(0)?.toUpperCase() ?? ""}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-80" align="end">
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
-                          {getInitials(userData.contactName)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <h4 className="font-semibold">{userData.contactName}</h4>
-                        <p className="text-sm text-muted-foreground">{userData.role}</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center space-x-2">
-                        <Building className="h-4 w-4 text-muted-foreground" />
-                        <span>{userData.companyName}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span>{userData.email}</span>
-                      </div>
-                    </div>
-
-                    <Button onClick={handleLogout} variant="outline" className="w-full justify-start">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Logout
+                  {/* ... keep your existing popover content */}
+                  <Link href="/profile" >
+                    <Button variant="outline" className="w-full justify-start">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Profile
                     </Button>
-                  </div>
+                  </Link>
+                  <Button onClick={handleLogout} variant="outline" className="w-full justify-start">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </Button>
                 </PopoverContent>
               </Popover>
+            ) : (
+              <Link href="/auth">
+                <Button className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 flex items-center transition-all duration-300 hover:scale-105 px-6 py-2 text-lg shadow-lg">
+                  Get Started
+                </Button>
+              </Link>
             )}
 
             {/* Mobile Menu */}
@@ -173,8 +164,9 @@ export function Navigation() {
   )
 }
 
-function MobileNav({ userData, onLogout }: { userData: any; onLogout: () => void }) {
+function MobileNav({ onLogout }: { userData: any; onLogout: () => void }) {
   const pathname = usePathname()
+  const { userData , isAuthenticated } = useAuth()
 
   return (
     <div className="flex flex-col space-y-6 mt-8">
