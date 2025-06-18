@@ -34,6 +34,7 @@ import {
   Shield,
   TrendingUp,
   Award,
+  Loader2 , 
   Info,
   RefreshCw,
   FileText,
@@ -90,10 +91,7 @@ const radarData = [
 // Reports Data
 const reportTemplates = [
   { id: 1, name: "ESG Performance Report", type: "Monthly", lastGenerated: "2024-01-15", status: "Ready" },
-  { id: 2, name: "Supplier Risk Assessment", type: "Quarterly", lastGenerated: "2024-01-10", status: "Pending" },
-  { id: 3, name: "Sustainability Dashboard", type: "Weekly", lastGenerated: "2024-01-18", status: "Ready" },
-  { id: 4, name: "Compliance Audit Report", type: "Annual", lastGenerated: "2023-12-31", status: "Overdue" },
-  { id: 5, name: "Cost-Benefit Analysis", type: "Monthly", lastGenerated: "2024-01-12", status: "Ready" },
+ 
 ]
 
 const performanceTrends = [
@@ -149,8 +147,9 @@ function getStatusColor(status: string) {
   }
 }
 
+
 export default function AssessmentPage() {
-  const [selectedSupplier, setSelectedSupplier] = useState("greentech")
+  const [selectedSupplier, setSelectedSupplier] = useState("")
   const [validationProgress, setValidationProgress] = useState(0)
   const [isValidating, setIsValidating] = useState(false)
   const [activeTab, setActiveTab] = useState("validation")
@@ -171,6 +170,121 @@ export default function AssessmentPage() {
     cost: "",
     reliability: "",
   })
+
+  // Supplier type definition
+  type Supplier = {
+  _id: string; // MongoDB uses _id
+  company_name: string;
+  esg_upload_status?: "success" | "pending" | "failed";
+  esg_final_score?: number;
+  esg_E_score?: number;
+  esg_S_score?: number;
+  esg_G_score?: number;
+  esg_category_scores?: {
+    Environmental?: Record<string, number>;
+    Social?: Record<string, number>;
+    Governance?: Record<string, number>;
+  };
+  esg_subfactor_scores?: string; // JSON string
+  // Add other fields as needed
+  };
+
+  //fetchins suppliers
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      const res = await fetch("http://localhost:8000/api/suppliers");
+      const data = await res.json();
+      console.log("Fetched suppliers:", data.suppliers);
+      setSuppliers(data.suppliers);
+    };
+
+    fetchSuppliers();
+  }, []);
+  
+  // Function to fetch recommendations from Gemini to genrate report 
+  const [recommendations, setRecommendations] = useState<string[]>([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const fetchRecommendations = async (supplier_name) => {
+    console.log("⏳ STARTING fetchRecommendations");
+    setLoadingRecommendations(true);
+    setRecommendations([]);
+    
+    try {
+      const supplier = suppliers.find(s => {
+        const match = s.company_name === supplier_name;
+        return match;
+      });
+
+      if (!supplier) {
+        console.error("Supplier not found", {
+          searchedName: supplier_name,
+          availableNames: suppliers.map(s => s.company_name)
+        });
+        setRecommendations(["Supplier data not available"]);
+        return;
+      }
+
+
+      const esgScores = supplier?.esg_subfactor_scores || 
+                      JSON.parse(supplier?.esg_subfactor_scores || "{}");
+      localStorage.setItem("esg_final_subfactor_scores", JSON.stringify(esgScores)); 
+
+      const esg_category_scores = {
+        esg_E_score: supplier?.esg_E_score ?? 0,       // Environmental
+        esg_G_score: supplier?.esg_G_score ?? 0,       // Governance
+        esg_S_score: supplier?.esg_S_score ?? 0,       // Social
+        esg_final_score: supplier?.esg_final_score ?? 0 // Final score
+      };
+      console.log("Combined ESG Scores:", esg_category_scores);
+      localStorage.setItem("esg_category_scores", JSON.stringify(esg_category_scores));
+
+      const response = await fetch("http://localhost:8000/api/gemini-recommendations-esgScore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: "Suggest improvements for: " + JSON.stringify({
+            company: supplier_name,
+            scores: esgScores
+          }),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        setRecommendations(["Failed to fetch recommendations from Gemini."]);
+        return;
+      }
+      
+      const data = await response.json();
+      // setting optimization
+      localStorage.setItem("optimization", JSON.stringify(data));
+      let points: string[] = [];
+
+      const rawText =
+        Array.isArray(data.recommendations)
+          ? data.recommendations.join(" ")
+          : typeof data.recommendations === "string"
+          ? data.recommendations
+          : typeof data === "string"
+          ? data
+          : "";
+
+      if (rawText) {
+        points = rawText
+          .split(/(?<=[.?!])\s+/) // split on end of sentence punctuation + space
+          .map((sentence:string) => sentence.replace(/^[-•*]\s*/, "").trim()) // remove starting bullet markers
+          .filter((sentence:string) => sentence.length > 0)
+          .map((sentence:string) => ` ${sentence}`);
+      }
+
+      setRecommendations(points.length ? points : ["No recommendations received."]);
+    } catch (err) {
+      setRecommendations(["Error fetching recommendations."]);
+    }
+    setLoadingRecommendations(false);
+  };
+
   const [isAiLoading, setIsAiLoading] = useState(false)
 
   // Simulate AI analysis (replace with real API call as needed)
@@ -209,10 +323,85 @@ export default function AssessmentPage() {
     // Simulate report generation
   }
 
-  const downloadReport = (reportId: number) => {
-    console.log(`Downloading report ${reportId}`)
-    // Simulate report download
+  const [isDownloading, setIsDownloading] = useState(false);
+  const downloadReport = async (reportId: number) => {
+  try {
+    setIsDownloading(true);
+    // 1. Extract data from localStorage
+    await fetchRecommendations( selectedSupplier ) ; 
+
+    const company_name =  selectedSupplier ;
+    const categoryScoresRaw = localStorage.getItem("esg_category_scores");
+    const subfactorScoresRaw = localStorage.getItem("esg_final_subfactor_scores");
+    const optimizationRaw = localStorage.getItem("optimization");
+
+    if (!categoryScoresRaw || !subfactorScoresRaw) {
+      console.error("Missing ESG data in localStorage");
+      alert("ESG score data is missing. Please calculate scores before downloading the report.");
+      return;
+    }
+
+    let recommendationsRaw = "";
+    if (optimizationRaw) {
+      try {
+        const optimizationObj = JSON.parse(optimizationRaw);
+        if (Array.isArray(optimizationObj.recommendations)) {
+          // Remove special characters from each recommendation
+          const cleaned = optimizationObj.recommendations.map((rec: string) =>
+            rec.replace(/[^\w\s.,:()-]/g, "").trim()
+          );
+          recommendationsRaw = JSON.stringify(cleaned);
+        }
+      } catch (e) {
+        recommendationsRaw = "";
+      }finally {
+      setIsDownloading(false);
+      }
+    }
+
+    const esg_category_scores = JSON.parse(categoryScoresRaw);
+    const esg_final_subfactor_scores = JSON.parse(subfactorScoresRaw);
+    const recommendations = recommendationsRaw ? JSON.parse(recommendationsRaw) : [];
+
+
+    // 2. Prepare payload
+    const payload = {
+      company_name,
+      esg_category_scores,
+      esg_final_subfactor_scores,
+      recommendations,
+    };
+
+    // 3. Send request to backend
+    const response = await fetch("http://localhost:8000/generate-esg-report", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+    console.log("Response status:", response);
+    if (!response.ok) {
+      throw new Error("Failed to generate report");
+    }
+
+    // 4. Convert response to blob and download
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${company_name}_ESG_Report.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+  } catch (error) {
+    console.error("Error downloading report:", error);
+    alert("An error occurred while generating the report.");
   }
+};
+
 
   return (
     <div className="relative pt-20 min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
@@ -229,15 +418,25 @@ export default function AssessmentPage() {
 
         {/* Supplier Selection */}
         <div className="flex justify-center">
-          <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
-            <SelectTrigger className="w-64">
-              <SelectValue placeholder="Select supplier to assess" />
+          <Select 
+            value={selectedSupplier} 
+            onValueChange={setSelectedSupplier}
+          >
+            <SelectTrigger className="w-64 transition-all duration-300 hover:shadow-lg">
+              <SelectValue placeholder="Select a supplier">
+                {selectedSupplier || "Select a supplier"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="greentech">GreenTech Solutions</SelectItem>
-              <SelectItem value="ecomanufacturing">EcoManufacturing Co</SelectItem>
-              <SelectItem value="sustainableparts">SustainableParts Inc</SelectItem>
-              <SelectItem value="cleanenergy">CleanEnergy Corp</SelectItem>
+              {suppliers.map((supplier) => (
+                <SelectItem
+                  key={supplier.company_name}
+                  value={String(supplier.company_name)}
+                  disabled={supplier.esg_upload_status !== "success"}
+                >
+                  {supplier.company_name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -246,9 +445,6 @@ export default function AssessmentPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Reduce tab width so all 6 tabs fit in a line */}
           <TabsList className="flex w-full justify-between gap-2">
-            <TabsTrigger value="validation" className="flex-1 min-w-5 px-2 py-1 text-xs">
-              Validation
-            </TabsTrigger>
             <TabsTrigger value="scoring" className="flex-1 min-w-5 px-2 py-1 text-xs">
               Scoring
             </TabsTrigger>
@@ -261,98 +457,12 @@ export default function AssessmentPage() {
             <TabsTrigger value="ai" className="flex-1 min-w-5 px-2 py-1 text-xs">
               AI Analysis
             </TabsTrigger>
-            <TabsTrigger value="reports" className="flex-1 min-w-5 px-2 py-1 text-xs">
-              Reports
-            </TabsTrigger>
+           
           </TabsList>
           
 
 
-          <TabsContent value="validation" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-2xl flex items-center">
-                      <CheckCircle className="h-6 w-6 mr-3 text-primary" />
-                      Validation Process
-                    </CardTitle>
-                    <CardDescription>Real-time validation of submitted ESG data with automated checks</CardDescription>
-                  </div>
-                  <Button onClick={startValidation} disabled={isValidating} className="flex items-center space-x-2">
-                    <RefreshCw className={`h-4 w-4 ${isValidating ? "animate-spin" : ""}`} />
-                    <span>{isValidating ? "Validating..." : "Start Validation"}</span>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Overall Progress</span>
-                      <span>{Math.round(validationProgress)}%</span>
-                    </div>
-                    <Progress value={validationProgress} className="h-3" />
-                  </div>
-
-                  <div className="grid gap-4">
-                    {validationSteps.map((step, index) => (
-                      <div
-                        key={step.id}
-                        className={`flex items-center justify-between p-4 rounded-lg border transition-all duration-500 ${
-                          step.status === "completed"
-                            ? "bg-green-50 dark:bg-green-900/20 border-green-200"
-                            : step.status === "in-progress"
-                              ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200"
-                              : "bg-muted/50 border-muted"
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              step.status === "completed"
-                                ? "bg-green-600 text-white"
-                                : step.status === "in-progress"
-                                  ? "bg-blue-600 text-white"
-                                  : "bg-muted text-muted-foreground"
-                            }`}
-                          >
-                            {step.status === "completed" ? (
-                              <CheckCircle className="h-4 w-4" />
-                            ) : step.status === "in-progress" ? (
-                              <RefreshCw className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <div className="w-2 h-2 bg-current rounded-full" />
-                            )}
-                          </div>
-                          <div>
-                            <div className="font-medium">{step.name}</div>
-                            <div className="text-sm text-muted-foreground">Estimated time: {step.duration}</div>
-                          </div>
-                        </div>
-                        <Badge
-                          variant={
-                            step.status === "completed"
-                              ? "default"
-                              : step.status === "in-progress"
-                                ? "secondary"
-                                : "outline"
-                          }
-                        >
-                          {step.status === "completed"
-                            ? "Completed"
-                            : step.status === "in-progress"
-                              ? "In Progress"
-                              : "Pending"}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
+ 
          
 <TabsContent value="scoring" className="space-y-6">
   <Card>
@@ -688,87 +798,8 @@ export default function AssessmentPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
-          </TabsContent>
 
-
-          <TabsContent value="reports" className="space-y-6">
-            {/* KPI Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {kpiMetrics.map((kpi, index) => (
-                <Card key={index}>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">{kpi.name}</p>
-                        <p className="text-2xl font-bold">{kpi.value}</p>
-                        <p className="text-xs text-muted-foreground">Target: {kpi.target}</p>
-                      </div>
-                      <div
-                        className={`p-2 rounded-full ${kpi.trend === "up" ? "bg-green-100 dark:bg-green-900/20" : "bg-gray-100 dark:bg-gray-900/20"}`}
-                      >
-                        <TrendingUp className={`h-4 w-4 ${kpi.trend === "up" ? "text-green-600" : "text-gray-600"}`} />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Performance Trends */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl flex items-center">
-                  <TrendingUp className="h-6 w-6 mr-3 text-primary" />
-                  Performance Trends
-                </CardTitle>
-                <CardDescription>6-month performance overview across key metrics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={performanceTrends}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area type="monotone" dataKey="esg" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.6} />
-                    <Area
-                      type="monotone"
-                      dataKey="cost"
-                      stackId="2"
-                      stroke="#3b82f6"
-                      fill="#3b82f6"
-                      fillOpacity={0.6}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="risk"
-                      stackId="3"
-                      stroke="#8b5cf6"
-                      fill="#8b5cf6"
-                      fillOpacity={0.6}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-                <div className="flex justify-center space-x-6 mt-4">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-green-600 rounded-full" />
-                    <span className="text-sm">ESG Score</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-blue-600 rounded-full" />
-                    <span className="text-sm">Cost Efficiency</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-purple-600 rounded-full" />
-                    <span className="text-sm">Risk Score</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Report Templates */}
-            <Card>
+               <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -813,18 +844,23 @@ export default function AssessmentPage() {
                       <div className="flex items-center space-x-3">
                         <Badge className={getStatusColor(report.status)}>{report.status}</Badge>
                         <div className="flex space-x-2">
-                          <Button variant="outline" size="sm" onClick={() => generateReport(report.id)}>
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Generate
-                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => downloadReport(report.id)}
-                            disabled={report.status !== "Ready"}
+                            disabled={report.status !== "Ready" || isDownloading}
                           >
-                            <Download className="h-4 w-4 mr-2" />
-                            Download
+                            {isDownloading ? (
+                              <div className="flex items-center">
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Generating...
+                              </div>
+                            ) : (
+                              <div className="flex items-center">
+                                <Download className="h-4 w-4 mr-2" />
+                                Download
+                              </div>
+                            )}
                           </Button>
                         </div>
                       </div>
@@ -832,6 +868,7 @@ export default function AssessmentPage() {
                   ))}
                 </div>
               </CardContent>
+            </Card>
             </Card>
           </TabsContent>
         </Tabs>

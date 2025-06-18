@@ -11,7 +11,7 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
-import { Upload, CheckCircle, Leaf, Users, Shield, Factory, Award, FileText, ChevronDown, ChevronUp, HelpCircle } from "lucide-react"
+import { Upload, CheckCircle, Leaf, Users, Shield, Factory, Award, FileText, ChevronDown, ChevronUp, HelpCircle , Loader2 } from "lucide-react"
 import { Chatbot } from "@/components/chatbot"
 import { useEffect } from "react"
 import { useRouter } from "next/router";
@@ -62,26 +62,43 @@ export default function DataSubmissionPage() {
   const [numberCorruptionIncidentsSeverityWeight, setNumberCorruptionIncidentsSeverityWeight] = useState("");
   const [numberDisclosedTaxJurisdictions, setNumberDisclosedTaxJurisdictions] = useState("");
   const [totalNumberOperatingJurisdictions, setTotalNumberOperatingJurisdictions] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [esgResult, setEsgResult] = useState(null);
+  const [overallData, setOverallData] = useState(null);
 
-  useEffect(() => {
+    // Prefill from storage 
+    useEffect(() => {
+      const fetchAndPrefillESGData = async () => {
+      try {
+        const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+        const email = userData.email;
+        if (!email) return;
 
-  // Prefill from storage 
+        // Always try to fetch from DB first on reload
+        const dbResponse = await fetch(`http://localhost:8000/api/get-esg-prefill`, {
+          headers: { "email": email }
+        });
+        
+        if (dbResponse.ok) {
+          const dbData = await dbResponse.json();
+          console.log("Prefilled from DB:", dbData.result);
+          updateFormFields(dbData.result);
+          return;
+        }
 
-  // < ------ -------- >
-  const prefillFromLocalStorage = () => {
-    const stored = localStorage.getItem("esg_upload_result");
-    if (!stored) return;
+        // Fallback to esgResult if exists (for upload scenario)
+        if (esgResult) {
+          console.log("Prefilled from memory:", esgResult);
+          updateFormFields(esgResult);
+        }
 
-    let parsed: any;
-    try {
-      parsed = JSON.parse(stored); // This will be a JS object, not a string
-      console.log( parsed ) ;
-    } catch (err) {
-      console.warn("Failed to parse stored JSON:", err);
-      return;
-    }
+      } catch (err) {
+        console.error("Prefill error:", err);
+      }
+    };
 
-    try {
+    const updateFormFields = (parsed) => {
       setCompanyName(parsed.company_name || "");
       setReportingYear(parsed.reporting_year?.toString() || "");
       setCompanyGhgEmissionsPerUnitRevenue(parsed.company_ghg_emissions_per_unit_revenue?.toString() || "");
@@ -116,85 +133,56 @@ export default function DataSubmissionPage() {
       setNumberCorruptionIncidentsSeverityWeight(parsed.number_corruption_incidents_severity_weight?.toString() || "");
       setNumberDisclosedTaxJurisdictions(parsed.number_disclosed_tax_jurisdictions?.toString() || "");
       setTotalNumberOperatingJurisdictions(parsed.total_number_operating_jurisdictions?.toString() || "");
-    } catch (e) {
-      console.warn("❌ Failed to prefill ESG state:", e);
-    }
-  };
-  // <------- --------->
-  
-  // calling function
-  prefillFromLocalStorage();
-  
-  // Event listener to check storage 
-  const onStorage = (event: StorageEvent) => {
-    if (event.key === "esg_upload_result") {
-      prefillFromLocalStorage();
-    }
-  };
-  window.addEventListener("storage", onStorage);
-
-  
-  const origSetItem = localStorage.setItem;
-  localStorage.setItem = function (key, value) {
-    origSetItem.apply(this, arguments as any);
-    if (key === "esg_upload_result") {
-      prefillFromLocalStorage();
-    }
-  };
-
-  return () => {
-    window.removeEventListener("storage", onStorage);
-    localStorage.setItem = origSetItem;
-  };
-}, []);
-
-// <------ ------->
-const [uploadProgress, setUploadProgress] = useState(0);
-const [isLoading, setIsLoading] = useState(false);
+    };
+    fetchAndPrefillESGData();
+  }, [uploadProgress , esgResult ]);
 
   // <---- Handles file uploads ---->
   const handleFileUpload = async (key: string, file: File) => {
-    try {
-      setIsLoading(true);
-      setUploadedFiles((prev) => ({ ...prev, [key]: file }))
+  try {
+    setIsLoading(true);
+    setUploadedFiles((prev) => ({ ...prev, [key]: file }));
+    setUploadProgress(10);
 
-      setUploadProgress(10); 
-      const formData = new FormData()
-      formData.append("file", file)
-      
-      // adding email to the body to query the supplier from the database
-      const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-      const email = userData.email || "";
-      formData.append("email", email);
+    const formData = new FormData();
+    formData.append("file", file);
 
-      console.log("Uploading file:", file.name);
+    // Get email from localStorage (or any other auth provider)
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    const email = userData.email || "";
+    formData.append("email", email);
 
-      setUploadProgress(30);
-      const response = await fetch("http://localhost:8000/api/upload-esg-report", {
-        method: "POST",
-        body: formData,
-      })
-       setUploadProgress(60); 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.detail || "Failed to upload ESG report.")
-      }
-      const data = await response.json()
-      localStorage.setItem("esg_raw",data);
-      setUploadProgress(90); 
-      // Store relevant data in localStorage
-      localStorage.setItem("esg_upload_result", JSON.stringify(data.result))
-      localStorage.setItem("esg_overall_data", JSON.stringify(data.overall_data))
-      localStorage.setItem("esg_upload_status", data.status)
-      setUploadProgress(100);
-      setIsLoading(false);
-      console.log("Upload and extraction successful:", data)
-    } catch (err) {
-      setIsLoading(false);
-      console.error("Upload error:", err)
-      alert("Failed to upload ESG report. Please try again.")
+    console.log("Uploading file:", file.name);
+
+    setUploadProgress(30);
+    const response = await fetch("http://localhost:8000/api/submit-esg-report", {
+      method: "POST",
+      body: formData,
+    });
+
+    setUploadProgress(60);
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to upload ESG report.");
     }
+
+    const data = await response.json();
+
+    setUploadProgress(90);
+    console.log("Upload and extraction successful:", data);
+
+    // Optionally: you can store result in state or trigger a re-fetch of prefill
+    setEsgResult(data.result);
+    setOverallData(data.overall_data);
+
+    setUploadProgress(100);
+    setIsLoading(false);
+  } catch (err) {
+    setIsLoading(false);
+    console.error("Upload error:", err);
+    alert("Failed to upload ESG report. Please try again.");
   }
+  };
   
   //<----- -------->
   const [formData, setFormData] = useState({
@@ -274,16 +262,50 @@ const [isLoading, setIsLoading] = useState(false);
     return Math.round((filledFields / totalFields) * 100)
   }
   
-  const handleSubmit = () => {
+  // const handleSubmit = () => {
 
-    toast({
-      title: "Data submitted successfully!",
-      description: "Your ESG data has been submitted for calculation. Results will be available shortly.",
-    })
-    setTimeout(() => {
-    window.location.href = "http://localhost:3000/esg-analysis";
-  }, 2000); 
+  //   toast({
+  //     title: "Data submitted successfully!",
+  //     description: "Your ESG data has been submitted for calculation. Results will be available shortly.",
+  //   })
+  //   setTimeout(() => {
+  //   window.location.href = "http://localhost:3000/esg-analysis";
+  // }, 2000); 
+  // } 
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+
+    const handleFinalESGSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    const email = userData.email || "";
+
+    const response = await fetch("http://localhost:8000/api/calculate-and-store-esg", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }), // Send as JSON
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to calculate ESG score");
+    }
+
+    const data = await response.json();
+    console.log("ESG scores calculated:", data);
+    setIsSubmitted(true); 
+    return data;
+
+  } catch (err: any) {
+    console.error("ESG Calculation Error:", err);
+    throw err;
+  }finally{
+    setIsSubmitting( false )
   }
+  };
 
   // Function to disable input feilds 
   const shouldDisableField = (fieldValue: string) => {
@@ -930,13 +952,27 @@ const [isLoading, setIsLoading] = useState(false);
 
           {/* Submit Button */}
           <div className="flex justify-center animate-slide-up pt-6">
-            <Button
-              onClick={handleSubmit}
-              disabled={uploadProgress < 100}
-              className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 flex items-center transition-all duration-300 hover:scale-105 px-8 py-6 text-lg shadow-lg"
+             <Button
+              onClick={handleFinalESGSubmit}
+              disabled={isSubmitting || isSubmitted} // Disable if either submitting or already submitted
+              className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 flex items-center transition-all duration-300 hover:scale-105 px-8 py-6 text-lg shadow-lg disabled:opacity-75 disabled:cursor-not-allowed"
             >
-              <span className="mr-2">Submit ESG Data</span>
-              <CheckCircle className="h-5 w-5" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : isSubmitted ? (
+                <>
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  <span>Submitted</span>
+                </>
+              ) : (
+                <>
+                  <span className="mr-2">Submit ESG Data</span>
+                  <CheckCircle className="h-5 w-5" />
+                </>
+              )}
             </Button>
           </div>
         </div>
