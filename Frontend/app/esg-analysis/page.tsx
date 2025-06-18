@@ -213,7 +213,7 @@ function getTrendIcon(trend: string) {
 }
 
 export default function ESGAnalysis() {
-  const [selectedSupplier, setSelectedSupplier] = useState("1")
+  const [selectedSupplier, setSelectedSupplier] = useState("")
   const [activeTab, setActiveTab] = useState("esg-analysis")
 
 
@@ -255,37 +255,51 @@ export default function ESGAnalysis() {
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [recAccordionOpen, setRecAccordionOpen] = useState(false);
 
-  // Function to fetch recommendations from Gemini
-const fetchRecommendations = async () => {
+// Function to fetch recommendations from Gemini
+const fetchRecommendations = async (supplier_name) => {
+  console.log("⏳ STARTING fetchRecommendations");
   setLoadingRecommendations(true);
   setRecommendations([]);
+  
   try {
-    const raw = localStorage.getItem("esg_category_scores");
-    if (!raw) {
-      setRecommendations(["No ESG category scores found in localStorage."]);
-      setLoadingRecommendations(false);
+    const supplier = suppliers.find(s => {
+      const match = s.company_name === supplier_name;
+      return match;
+    });
+
+    if (!supplier) {
+      console.error("Supplier not found", {
+        searchedName: supplier_name,
+        availableNames: suppliers.map(s => s.company_name)
+      });
+      setRecommendations(["Supplier data not available"]);
       return;
     }
-    const esgScores = JSON.parse(raw);
 
+
+    const esgScores = supplier?.esg_subfactor_scores || 
+                     JSON.parse(supplier?.esg_subfactor_scores || "{}");
+    
     const response = await fetch("http://localhost:8000/api/gemini-recommendations-esgScore", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        prompt: "Suggest techniques to improve these ESG scores: " + JSON.stringify(esgScores),
+        prompt: "Suggest improvements for: " + JSON.stringify({
+          company: supplier_name,
+          scores: esgScores
+        }),
       }),
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
       setRecommendations(["Failed to fetch recommendations from Gemini."]);
-      setLoadingRecommendations(false);
       return;
     }
-
+    
     const data = await response.json();
-    localStorage.setItem("optimization", JSON.stringify(data));
 
-     let points: string[] = [];
+    let points: string[] = [];
 
     const rawText =
       Array.isArray(data.recommendations)
@@ -314,10 +328,20 @@ const fetchRecommendations = async () => {
 
   // Supplier type definition
   type Supplier = {
-    id: string | number;
-    company_name: string;
-    esg_upload_status?: string;
-    // Add other fields as needed
+  _id: string; // MongoDB uses _id
+  company_name: string;
+  esg_upload_status?: "success" | "pending" | "failed";
+  esg_final_score?: number;
+  esg_E_score?: number;
+  esg_S_score?: number;
+  esg_G_score?: number;
+  esg_category_scores?: {
+    Environmental?: Record<string, number>;
+    Social?: Record<string, number>;
+    Governance?: Record<string, number>;
+  };
+  esg_subfactor_scores?: string; // JSON string
+  // Add other fields as needed
   };
 
   //fetchins suppliers
@@ -333,184 +357,168 @@ const fetchRecommendations = async () => {
     fetchSuppliers();
   }, []);
 
-  const handleSubmit = async () => {
-    try {
-      // Step 1: Get values from localStorage
-      const resultRaw = localStorage.getItem("esg_upload_result");
-      const overallDataRaw = localStorage.getItem("esg_overall_data");
+  // for Overall score 
+  useEffect(() => {
+    if (selectedSupplier) {
+      // Find the full supplier data including ESG score
+      const supplierWithScore = suppliers.find(s => s.company_name === selectedSupplier);
+      setESGScore(supplierWithScore?.esg_final_score ?? null);
+    } else {
+      setESGScore(null);
+    } 
+  }, [selectedSupplier, suppliers]);
 
-      if (!resultRaw || !overallDataRaw) {
-        alert("Required ESG data not found in localStorage.");
-        return;
-      }
 
-      const result = JSON.parse(resultRaw);
-      const overall_data = JSON.parse(overallDataRaw);
-
-      // Step 2: Construct request body
-      const requestBody = {
-        result,
-        overall_data,
-        status: "success",
-      };
-
-      // Step 3: Send first POST request to calculate subfactor scores
-      const response = await fetch("http://localhost:8000/api/calculate-esg-scores-by-formulas", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("API error:", errorData);
-        alert("Failed to calculate ESG scores.");
-        return;
-      }
-
-      const data = await response.json();
-
-      // Step 4: Save first response to localStorage
-      if (data.subfactor_scores) {
-        localStorage.setItem("esg_subfactor_scores", JSON.stringify(data.subfactor_scores));
-
-        // Step 5: Send second request to fill missing scores
-        const secondResponse = await fetch("http://localhost:8000/api/fill-missing-esg-sub-scores-by-industryavg", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ subfactor_scores: data.subfactor_scores }),
-        });
-
-        if (!secondResponse.ok) {
-          const errorData = await secondResponse.json();
-          console.error("Second API error:", errorData);
-          alert("Failed to fill missing ESG scores.");
-          return;
-        }
-
-        const filledData = await secondResponse.json();
-
-        // Step 6: Save second response to localStorage
-        if (filledData.final_subfactor_scores) {
-          localStorage.setItem("esg_final_subfactor_scores", JSON.stringify(filledData.final_subfactor_scores));
-          alert("Final ESG scores (with industry averages) saved successfully.");
+  // For the pei chart 
+  useEffect(() => {
+    const fetchCompanyESGData = () => {
+      try {
+        
+        // Find the specific company by ID
+        const supplier = suppliers.find(s => s.company_name === selectedSupplier);
+        
+        if ( supplier ) {
+          setEScore(supplier.esg_E_score || 0);
+          setSScore(supplier.esg_S_score || 0);
+          setGScore(supplier.esg_G_score || 0);
         } else {
-          console.warn("Unexpected second API response:", filledData);
-          alert("Invalid response from second server call.");
+          // Set default values if no data found
+          setEScore(0);
+          setSScore(0);
+          setGScore(0);
         }
-      } else {
-        console.warn("Unexpected first API response:", data);
-        alert("Invalid response from first server call.");
+      } catch (err) {
+  
       }
-    } catch (error) {
-      console.error("handleSubmit error:", error);
-      alert("An unexpected error occurred during ESG processing.");
-    }
-  };
+    };
 
+    fetchCompanyESGData();
+  }, [selectedSupplier] ) ;
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const rawData = localStorage.getItem("esg_final_subfactor_scores");
-      if (!rawData) return;
+      const supplier = suppliers.find(s => s.company_name === selectedSupplier)
 
       try {
-        const data = JSON.parse(rawData);
-        // 🌱 Environmental
+        const data = typeof supplier.esg_subfactor_scores === 'string' 
+        ? JSON.parse(supplier.esg_subfactor_scores) 
+        : supplier.esg_subfactor_scores;
+
+        
         if (data.Environmental) {
           setGhgScore(data.Environmental["GHG Score"] ?? "");
-          setEnergyEfficiencyScore(data.Environmental["Energy Efficiency Score"] ?? "");
-          setWaterEfficiencyScore(data.Environmental["Water Efficiency Score"] ?? "");
-          setWasteRecyclingScore(data.Environmental["Waste Recycling Score"] ?? "");
+          setEnergyEfficiencyScore(data.Environmental["Energy Score"] ?? ""); // Fixed
+          setWaterEfficiencyScore(data.Environmental["Water Score"] ?? ""); // Fixed
+          setWasteRecyclingScore(data.Environmental["Waste Score"] ?? ""); // Fixed
           setComplianceScore(data.Environmental["Compliance Score"] ?? "");
-          setRenewableEnergyScore(data.Environmental["Renewable Energy Score"] ?? "");
+          setRenewableEnergyScore(data.Environmental["Renewable Score"] ?? ""); // Fixed
           setBiodiversityScore(data.Environmental["Biodiversity Score"] ?? "");
-          setClimateRiskManagementScore(data.Environmental["Climate Risk Management Score"] ?? "");
+          setClimateRiskManagementScore(data.Environmental["Climate Risk Score"] ?? ""); // Fixed
         }
 
         // 👥 Social
         if (data.Social) {
-
           setRetentionScore(data.Social["Retention Score"] ?? "");
           setSafetyScore(data.Social["Safety Score"] ?? "");
           setDiversityScore(data.Social["Diversity Score"] ?? "");
-          setCommunityInvestmentScore(data.Social["Community Investment Score"] ?? "");
-          setCustomerSatisfactionScore(data.Social["Customer Satisfaction Score"] ?? "");
+          setCommunityInvestmentScore(data.Social["Community Score"] ?? ""); // Fixed
+          setCustomerSatisfactionScore(data.Social["Customer Score"] ?? ""); // Fixed
           setHumanRightsScore(data.Social["Human Rights Score"] ?? "");
           setTrainingScore(data.Social["Training Score"] ?? "");
         }
 
         // 🏛 Governance
         if (data.Governance) {
-          setBoardIndependenceScore(data.Governance["Board Independence Score"] ?? "");
-          setCompensationAlignmentScore(data.Governance["Compensation Alignment Score"] ?? "");
-          setAuditCommitteeScore(data.Governance["Audit Committee Score"] ?? "");
-          setShareholderRightsScore(data.Governance["Shareholder Rights Score"] ?? "");
+          setBoardIndependenceScore(data.Governance["Board Independence"] ?? ""); // Fixed
+          setCompensationAlignmentScore(data.Governance["Compensation Score"] ?? ""); // Fixed
+          setAuditCommitteeScore(data.Governance["Audit Score"] ?? ""); // Fixed
+          setShareholderRightsScore(data.Governance["Shareholder Score"] ?? ""); // Fixed
           setTransparencyScore(data.Governance["Transparency Score"] ?? "");
-          setAntiCorruptionScore(data.Governance["Anti-Corruption Score"] ?? "");
-          setTaxTransparencyScore(data.Governance["Tax Transparency Score"] ?? "");
+          setAntiCorruptionScore(data.Governance["Anti-Corruption"] ?? ""); // Fixed
+          setTaxTransparencyScore(data.Governance["Tax Transparency"] ?? "");
         }
-
-        console.log("✅ Subfactor scores loaded from localStorage.");
-        clearInterval(interval); // stop checking once loaded
+      
       } catch (err) {
         console.error("Failed to parse final_subfactor_scores:", err);
       }
-    }, 1000); // check every 1 second
 
-    return () => clearInterval(interval); // cleanup on unmount
-  }, []);
+  }, [selectedSupplier]);
 
-  // calculating scores
-  const calculateScores = async () => {
-    try {
-      // Step 1: Get the ESG final subfactor scores from localStorage
-      const rawData = localStorage.getItem("esg_final_subfactor_scores");
-      if (!rawData) {
-        console.error("No ESG data found in localStorage.");
-        return;
-      }
-
-      const final_subfactor_scores = JSON.parse(rawData);
-
-      // Step 2: Build the payload for the API
-      const payload = {
-        final_subfactor_scores
-      };
-
-
-      const response = await fetch("http://localhost:8000/api/calculate-final-esg-score", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      setEScore(result.E_score);
-      setSScore(result.S_score);
-      setGScore(result.G_score);
-      setESGScore(result.ESG_score);
-
-      console.log("escore", result.E_score);
-      // Step 4: Store result in localStorage
-      localStorage.setItem("esg_category_scores", JSON.stringify(result));
-
-      alert("ESG scores calculated successfully!");
-    } catch (error) {
-      console.error("Error in calculateScores:", error);
+    useEffect(() => {
+    if (!selectedSupplier) {
+      // Reset all scores if no supplier is selected
+      resetAllScores();
+      return;
     }
-  };
 
+    const supplier = suppliers.find(s => s.company_name === selectedSupplier);
+    
+    if (!supplier) {
+      resetAllScores();
+      return;
+    }
+
+    // Set main ESG scores
+    setEScore(supplier.esg_E_score || 0);
+    setSScore(supplier.esg_S_score || 0);
+    setGScore(supplier.esg_G_score || 0);
+
+    // Parse subfactor scores if they exist
+    try {
+      const data = supplier.esg_subfactor_scores
+        ? typeof supplier.esg_subfactor_scores === 'string'
+          ? JSON.parse(supplier.esg_subfactor_scores)
+          : supplier.esg_subfactor_scores
+        : null;
+
+      if (data) {
+         if (data.Environmental) {
+          setGhgScore(data.Environmental["GHG Score"] ?? "");
+          setEnergyEfficiencyScore(data.Environmental["Energy Score"] ?? ""); // Fixed
+          setWaterEfficiencyScore(data.Environmental["Water Score"] ?? ""); // Fixed
+          setWasteRecyclingScore(data.Environmental["Waste Score"] ?? ""); // Fixed
+          setComplianceScore(data.Environmental["Compliance Score"] ?? "");
+          setRenewableEnergyScore(data.Environmental["Renewable Score"] ?? ""); // Fixed
+          setBiodiversityScore(data.Environmental["Biodiversity Score"] ?? "");
+          setClimateRiskManagementScore(data.Environmental["Climate Risk Score"] ?? ""); // Fixed
+        }
+
+        // 👥 Social
+        if (data.Social) {
+          setRetentionScore(data.Social["Retention Score"] ?? "");
+          setSafetyScore(data.Social["Safety Score"] ?? "");
+          setDiversityScore(data.Social["Diversity Score"] ?? "");
+          setCommunityInvestmentScore(data.Social["Community Score"] ?? ""); // Fixed
+          setCustomerSatisfactionScore(data.Social["Customer Score"] ?? ""); // Fixed
+          setHumanRightsScore(data.Social["Human Rights Score"] ?? "");
+          setTrainingScore(data.Social["Training Score"] ?? "");
+        }
+
+        // 🏛 Governance
+        if (data.Governance) {
+          setBoardIndependenceScore(data.Governance["Board Independence"] ?? ""); // Fixed
+          setCompensationAlignmentScore(data.Governance["Compensation Score"] ?? ""); // Fixed
+          setAuditCommitteeScore(data.Governance["Audit Score"] ?? ""); // Fixed
+          setShareholderRightsScore(data.Governance["Shareholder Score"] ?? ""); // Fixed
+          setTransparencyScore(data.Governance["Transparency Score"] ?? "");
+          setAntiCorruptionScore(data.Governance["Anti-Corruption"] ?? ""); // Fixed
+          setTaxTransparencyScore(data.Governance["Tax Transparency"] ?? "");
+        }
+      }
+    } catch (err) {
+      console.error("Error parsing subfactor scores:", err);
+    }
+
+  }, [selectedSupplier, suppliers]);
+
+  // Helper function to reset all scores
+  const resetAllScores = () => {
+    setEScore(0);
+    setSScore(0);
+    setGScore(0);
+    setGhgScore("");
+    setEnergyEfficiencyScore("");
+    // ... reset all other scores
+  };
   // Determine status for each factor
   const getStatus = (score: number) => {
     if (score >= 85) return "excellent"
@@ -543,17 +551,22 @@ const fetchRecommendations = async () => {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="flex justify-center"
         >
-          <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+        
+        { activeTab === "esg-analysis" && (
+          <Select 
+            value={selectedSupplier} 
+            onValueChange={setSelectedSupplier}
+          >
             <SelectTrigger className="w-64 transition-all duration-300 hover:shadow-lg">
               <SelectValue placeholder="Select a supplier">
-      Ford
-    </SelectValue>
+                {selectedSupplier || "Select a supplier"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {suppliers.map((supplier,idx) => (
+              {suppliers.map((supplier) => (
                 <SelectItem
-                  key={supplier.id ?? idx}
-                  value={String(supplier.id)}
+                  key={supplier.company_name}
+                  value={String(supplier.company_name)}
                   disabled={supplier.esg_upload_status !== "success"}
                 >
                   {supplier.company_name}
@@ -561,7 +574,8 @@ const fetchRecommendations = async () => {
               ))}
             </SelectContent>
           </Select>
-        </motion.div>
+        )}
+      </motion.div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 p-1 bg-background/50 backdrop-blur-sm">
@@ -586,10 +600,15 @@ const fetchRecommendations = async () => {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="grid lg:grid-cols-2 gap-6"
             >
+              { /* overall score component */}
               <Card className="transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
                 <CardHeader>
                   <CardTitle>Overall ESG Score</CardTitle>
-                  <CardDescription>Comprehensive sustainability rating</CardDescription>
+                  <CardDescription>
+                    {selectedSupplier 
+                      ? `For ${selectedSupplier.company_name}` 
+                      : "Select a supplier to view score"}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center space-y-4">
@@ -626,12 +645,6 @@ const fetchRecommendations = async () => {
                         : "N/A"}{" "}
                       Performance
                     </Badge>
-                    <Button
-                      onClick={calculateScores}
-                      className="w-full transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-                    >
-                      Calculate Scores
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -646,9 +659,9 @@ const fetchRecommendations = async () => {
                     <PieChart>
                       <Pie
                         data={[
-                          { name: "Environmental", value: eScore || 0, color: "#22c55e" },
-                          { name: "Social", value: sScore || 0, color: "#3b82f6" },
-                          { name: "Governance", value: gScore || 0, color: "#f59e0b" },
+                          { name: "Environmental", value: eScore, color: "#22c55e" },
+                          { name: "Social", value: sScore, color: "#3b82f6" },
+                          { name: "Governance", value: gScore, color: "#f59e0b" },
                         ]}
                         cx="50%"
                         cy="50%"
@@ -666,9 +679,9 @@ const fetchRecommendations = async () => {
 
                   <div className="flex justify-center space-x-4 mt-4">
                     {[
-                      { name: "Environmental", value: eScore || 0, color: "#22c55e" },
-                      { name: "Social", value: sScore || 0, color: "#3b82f6" },
-                      { name: "Governance", value: gScore || 0, color: "#f59e0b" },
+                      { name: "Environmental", value: eScore || 0 , color: "#22c55e" },
+                      { name: "Social", value: sScore || 0 , color: "#3b82f6" },
+                      { name: "Governance", value: gScore || 0 , color: "#f59e0b" },
                     ].map((entry, index) => (
                       <motion.div
                         key={index}
@@ -1047,7 +1060,8 @@ const fetchRecommendations = async () => {
 
               </AccordionItem>
             </Accordion>
-            <div className="flex justify-center">
+
+            {/* <div className="flex justify-center">
               <motion.button
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1060,7 +1074,7 @@ const fetchRecommendations = async () => {
               >
                 Calculate Individual Scores
               </motion.button>
-            </div>
+            </div> */}
 
           </TabsContent>
 
@@ -1103,112 +1117,95 @@ const fetchRecommendations = async () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      { /*{supplierRankings.map((supplier, index) => ( */}
-                      <motion.div
-                        key={1}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.4 + 0 * 0.1 }}
-                      >
-                        <Card className="transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
-                          <CardContent className="p-6">
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="flex items-center space-x-4">
-                                <div className="flex items-center space-x-2">
-                                  <div className="text-3xl font-bold text-primary">#1</div>
-                                  { /*getTrendIcon(supplier.trend)*/}
-                                </div>
-                                <div>
-                                  <h3 className="text-xl font-semibold">Ford</h3>
-                                  <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                                    {/* <span>{supplier.location}</span>
-                                      <span>•</span>
-                                      <span>{supplier.category}</span>
-                                      <span>•</span> */}
-                                    {/* <span
-                                        className={
-                                          supplier.trend === "up"
-                                            ? "text-green-600"
-                                            : supplier.trend === "down"
-                                              ? "text-red-600"
-                                              : "text-gray-600"
-                                        }
-                                      >
-                                        {supplier.improvement}
-                                      </span> */}
-                                  </div>
-                                </div>
-                              </div>
-                              {/* <div className="text-right">
-                                  <div className="text-3xl font-bold text-green-600">{supplier.overallScore}</div>
-                                  <div className="text-sm text-muted-foreground">Overall Score</div>
-                                </div> */}
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-4 mb-4">
-                              <div className="text-center">
-                                <div className="text-lg font-semibold">{esgScore}</div>
-                                <div className="text-sm text-muted-foreground">ESG Score</div>
-                                <Progress value={esgScore} className="mt-1" />
-                              </div>
-                              {/* <div className="text-center">
-                                  <div className="text-lg font-semibold">{supplier.costScore}</div>
-                                  <div className="text-sm text-muted-foreground">Cost Score</div>
-                                  <Progress value={supplier.costScore} className="mt-1" />
-                                </div> */}
-                              {/* <div className="text-center">
-                                  <Badge className={getRiskColor(supplier.riskLevel)}>{supplier.riskLevel} Risk</Badge>
-                                </div> */}
-                            </div>
-
-                            {/* <div className="flex flex-wrap gap-2 mb-4">
-                                {supplier.certifications.map((cert, certIndex) => (
-                                  <Badge key={certIndex} variant="secondary" className="text-xs">
-                                    <Star className="h-3 w-3 mr-1" />
-                                    {cert}
-                                  </Badge>
-                                ))}
-                              </div> */}
-
-                            <Accordion type="single" collapsible className="space-y-4">
-                              {/* ...existing code... */}
-                              <AccordionItem value={`recommendations-0`} className="border-none">
-                                <AccordionTrigger
-                                  className="text-sm font-medium hover:no-underline"
-                                  onClick={async () => {
-                                    if (!recAccordionOpen) {
-                                      await fetchRecommendations();
-                                      setRecAccordionOpen(true);
-                                    } else {
-                                      setRecAccordionOpen(false);
-                                    }
-                                  }}
-                                >
-                                  View Improvement Recommendations
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                  {loadingRecommendations ? (
-                                    <div className="text-sm text-muted-foreground mb-2">Loading recommendations...</div>
-                                  ) : (
-                                    recommendations.length > 0 && (
-                                      <ul className="list-disc pl-5 space-y-1 mb-2">
-                                        {recommendations.map((rec, idx) => (
-                                          <li key={idx} className="text-sm">{rec}</li>
-                                        ))}
-                                      </ul>
-                                    )
-                                  )}
-                                </AccordionContent>
-                              </AccordionItem>
-                              {/* ...existing code... */}
-                            </Accordion>
-
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                      { /*))}*/}
+                      <div className="space-y-4">
+  {/* Sort suppliers by esg_final_score in descending order and then map */}
+  {suppliers
+    .filter(supplier => supplier.esg_upload_status === "success")
+    .sort((a, b) => (b.esg_final_score || 0) - (a.esg_final_score || 0))
+    .map((supplier, index) => (
+      <motion.div
+        key={supplier._id || index}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
+      >
+        <Card className="transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="text-3xl font-bold text-primary">#{index + 1}</div>
+                    {/* getTrendIcon(supplier.trend) */}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold">{supplier.company_name}</h3>
+                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                      {/* Optional: Add location/category if available */}
+                      {/* <span>{supplier.location}</span>
+                      <span>•</span>
+                      <span>{supplier.category}</span> */}
                     </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-green-600">
+                    {supplier.esg_final_score?.toFixed(1) || 'N/A'}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Overall Score</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="text-center">
+                  <div className="text-lg font-semibold">
+                    {supplier.esg_final_score?.toFixed(1) || 'N/A'}
+                  </div>
+                  <div className="text-sm text-muted-foreground">ESG Score</div>
+                  <Progress 
+                    value={supplier.esg_final_score || 0} 
+                    className="mt-1" 
+                  />
+                </div>
+                {/* Add other score columns if needed */}
+              </div>
+
+              <Accordion type="single" collapsible className="space-y-4">
+                <AccordionItem value={`recommendations-${index}`} className="border-none">
+                  <AccordionTrigger
+                    className="text-sm font-medium hover:no-underline"
+                    onClick={async () => {
+                      if (!recAccordionOpen) {
+                        await fetchRecommendations(supplier.company_name); // Pass supplier ID
+                        setRecAccordionOpen(true);
+                      } else {
+                        setRecAccordionOpen(false);
+                      }
+                    }}
+                  >
+                    View Improvement Recommendations
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    {loadingRecommendations ? (
+                      <div className="text-sm text-muted-foreground mb-2">
+                        Loading recommendations...
+                      </div>
+                    ) : (
+                      recommendations.length > 0 && (
+                        <ul className="list-disc pl-5 space-y-1 mb-2">
+                          {recommendations.map((rec, idx) => (
+                            <li key={idx} className="text-sm">{rec}</li>
+                          ))}
+                        </ul>
+                      )
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </CardContent>
+          </Card>
+          </motion.div>
+            ))}
+              </div>
                   </CardContent>
                 </Card>
               </div>
