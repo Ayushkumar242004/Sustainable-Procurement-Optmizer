@@ -215,7 +215,7 @@ function getTrendIcon(trend: string) {
 export default function ESGAnalysis() {
   const [selectedSupplier, setSelectedSupplier] = useState("1")
   const [activeTab, setActiveTab] = useState("esg-analysis")
- 
+
 
   // 🌱 Environmental
   const [ghgScore, setGhgScore] = useState("");
@@ -250,12 +250,83 @@ export default function ESGAnalysis() {
   const [gScore, setGScore] = useState<number | null>(null);
   const [esgScore, setESGScore] = useState<number | null>(null);
 
+
+  const [recommendations, setRecommendations] = useState<string[]>([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
+  const [recAccordionOpen, setRecAccordionOpen] = useState(false);
+
+  // Function to fetch recommendations from Gemini
+const fetchRecommendations = async () => {
+  setLoadingRecommendations(true);
+  setRecommendations([]);
+  try {
+    const raw = localStorage.getItem("esg_category_scores");
+    if (!raw) {
+      setRecommendations(["No ESG category scores found in localStorage."]);
+      setLoadingRecommendations(false);
+      return;
+    }
+    const esgScores = JSON.parse(raw);
+
+    const response = await fetch("http://localhost:8000/api/gemini-recommendations-esgScore", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: "Suggest techniques to improve these ESG scores: " + JSON.stringify(esgScores),
+      }),
+    });
+
+    if (!response.ok) {
+      setRecommendations(["Failed to fetch recommendations from Gemini."]);
+      setLoadingRecommendations(false);
+      return;
+    }
+
+    const data = await response.json();
+    localStorage.setItem("optimization", JSON.stringify(data));
+
+     let points: string[] = [];
+
+    const rawText =
+      Array.isArray(data.recommendations)
+        ? data.recommendations.join(" ")
+        : typeof data.recommendations === "string"
+        ? data.recommendations
+        : typeof data === "string"
+        ? data
+        : "";
+
+    if (rawText) {
+      points = rawText
+        .split(/(?<=[.?!])\s+/) // split on end of sentence punctuation + space
+        .map((sentence:string) => sentence.replace(/^[-•*]\s*/, "").trim()) // remove starting bullet markers
+        .filter((sentence:string) => sentence.length > 0)
+        .map((sentence:string) => ` ${sentence}`);
+    }
+
+    setRecommendations(points.length ? points : ["No recommendations received."]);
+  } catch (err) {
+    setRecommendations(["Error fetching recommendations."]);
+  }
+  setLoadingRecommendations(false);
+};
+
+
+  // Supplier type definition
+  type Supplier = {
+    id: string | number;
+    company_name: string;
+    esg_upload_status?: string;
+    // Add other fields as needed
+  };
+
   //fetchins suppliers
-  const [suppliers, setSuppliers] = useState([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   useEffect(() => {
     const fetchSuppliers = async () => {
       const res = await fetch("http://localhost:8000/api/suppliers");
       const data = await res.json();
+      console.log("Fetched suppliers:", data.suppliers);
       setSuppliers(data.suppliers);
     };
 
@@ -304,7 +375,7 @@ export default function ESGAnalysis() {
       // Step 4: Save first response to localStorage
       if (data.subfactor_scores) {
         localStorage.setItem("esg_subfactor_scores", JSON.stringify(data.subfactor_scores));
-      
+
         // Step 5: Send second request to fill missing scores
         const secondResponse = await fetch("http://localhost:8000/api/fill-missing-esg-sub-scores-by-industryavg", {
           method: "POST",
@@ -474,13 +545,15 @@ export default function ESGAnalysis() {
         >
           <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
             <SelectTrigger className="w-64 transition-all duration-300 hover:shadow-lg">
-              <SelectValue placeholder="Select a supplier" />
+              <SelectValue placeholder="Select a supplier">
+      Ford
+    </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {suppliers.map((supplier) => (
+              {suppliers.map((supplier,idx) => (
                 <SelectItem
-                  key={supplier.id}
-                  value={supplier.id}
+                  key={supplier.id ?? idx}
+                  value={String(supplier.id)}
                   disabled={supplier.esg_upload_status !== "success"}
                 >
                   {supplier.company_name}
@@ -1032,28 +1105,28 @@ export default function ESGAnalysis() {
                   <CardContent>
                     <div className="space-y-4">
                       { /*{supplierRankings.map((supplier, index) => ( */}
-                        <motion.div
-                          key= {1}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5, delay: 0.4 + 0 * 0.1 }}
-                        >
-                          <Card className="transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
-                            <CardContent className="p-6">
-                              <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center space-x-4">
-                                  <div className="flex items-center space-x-2">
-                                    <div className="text-3xl font-bold text-primary">#1</div>
-                                    { /*getTrendIcon(supplier.trend)*/}
-                                  </div>
-                                  <div>
-                                    <h3 className="text-xl font-semibold">Ford</h3>
-                                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                                      {/* <span>{supplier.location}</span>
+                      <motion.div
+                        key={1}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.4 + 0 * 0.1 }}
+                      >
+                        <Card className="transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
+                          <CardContent className="p-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-2">
+                                  <div className="text-3xl font-bold text-primary">#1</div>
+                                  { /*getTrendIcon(supplier.trend)*/}
+                                </div>
+                                <div>
+                                  <h3 className="text-xl font-semibold">Ford</h3>
+                                  <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                                    {/* <span>{supplier.location}</span>
                                       <span>•</span>
                                       <span>{supplier.category}</span>
                                       <span>•</span> */}
-                                      {/* <span
+                                    {/* <span
                                         className={
                                           supplier.trend === "up"
                                             ? "text-green-600"
@@ -1064,32 +1137,32 @@ export default function ESGAnalysis() {
                                       >
                                         {supplier.improvement}
                                       </span> */}
-                                    </div>
                                   </div>
                                 </div>
-                                {/* <div className="text-right">
+                              </div>
+                              {/* <div className="text-right">
                                   <div className="text-3xl font-bold text-green-600">{supplier.overallScore}</div>
                                   <div className="text-sm text-muted-foreground">Overall Score</div>
                                 </div> */}
-                              </div>
+                            </div>
 
-                              <div className="grid grid-cols-3 gap-4 mb-4">
-                                <div className="text-center">
-                                  <div className="text-lg font-semibold">{esgScore}</div>
-                                  <div className="text-sm text-muted-foreground">ESG Score</div>
-                                  <Progress value={esgScore} className="mt-1" />
-                                </div>
-                                {/* <div className="text-center">
+                            <div className="grid grid-cols-3 gap-4 mb-4">
+                              <div className="text-center">
+                                <div className="text-lg font-semibold">{esgScore}</div>
+                                <div className="text-sm text-muted-foreground">ESG Score</div>
+                                <Progress value={esgScore} className="mt-1" />
+                              </div>
+                              {/* <div className="text-center">
                                   <div className="text-lg font-semibold">{supplier.costScore}</div>
                                   <div className="text-sm text-muted-foreground">Cost Score</div>
                                   <Progress value={supplier.costScore} className="mt-1" />
                                 </div> */}
-                                {/* <div className="text-center">
+                              {/* <div className="text-center">
                                   <Badge className={getRiskColor(supplier.riskLevel)}>{supplier.riskLevel} Risk</Badge>
                                 </div> */}
-                              </div>
+                            </div>
 
-                              {/* <div className="flex flex-wrap gap-2 mb-4">
+                            {/* <div className="flex flex-wrap gap-2 mb-4">
                                 {supplier.certifications.map((cert, certIndex) => (
                                   <Badge key={certIndex} variant="secondary" className="text-xs">
                                     <Star className="h-3 w-3 mr-1" />
@@ -1098,27 +1171,43 @@ export default function ESGAnalysis() {
                                 ))}
                               </div> */}
 
-                              <Accordion type="single" collapsible>
-                                <AccordionItem value={`recommendations-0`} className="border-none">
-                                  <AccordionTrigger className="text-sm font-medium hover:no-underline">
-                                    View Improvement Recommendations
-                                  </AccordionTrigger>
-                                  <AccordionContent>
-                                    {/* <div className="space-y-2">
-                                      {supplier.recommendations.map((rec, recIndex) => (
-                                        <div key={recIndex} className="flex items-center space-x-2 text-sm">
-                                          <CheckCircle className="h-4 w-4 text-green-600" />
-                                          <span>{rec}</span>
-                                        </div>
-                                      ))}
-                                    </div> */}
-                                  </AccordionContent>
-                                </AccordionItem>
-                              </Accordion>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      { /*))}*/ } 
+                            <Accordion type="single" collapsible className="space-y-4">
+                              {/* ...existing code... */}
+                              <AccordionItem value={`recommendations-0`} className="border-none">
+                                <AccordionTrigger
+                                  className="text-sm font-medium hover:no-underline"
+                                  onClick={async () => {
+                                    if (!recAccordionOpen) {
+                                      await fetchRecommendations();
+                                      setRecAccordionOpen(true);
+                                    } else {
+                                      setRecAccordionOpen(false);
+                                    }
+                                  }}
+                                >
+                                  View Improvement Recommendations
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                  {loadingRecommendations ? (
+                                    <div className="text-sm text-muted-foreground mb-2">Loading recommendations...</div>
+                                  ) : (
+                                    recommendations.length > 0 && (
+                                      <ul className="list-disc pl-5 space-y-1 mb-2">
+                                        {recommendations.map((rec, idx) => (
+                                          <li key={idx} className="text-sm">{rec}</li>
+                                        ))}
+                                      </ul>
+                                    )
+                                  )}
+                                </AccordionContent>
+                              </AccordionItem>
+                              {/* ...existing code... */}
+                            </Accordion>
+
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                      { /*))}*/}
                     </div>
                   </CardContent>
                 </Card>
