@@ -77,7 +77,7 @@ export function Chatbot() {
  const GEMINI_API_KEY = "AIzaSyBWY904yt5tCcUt0r4r8Ljcn3w66y3Uz_o"
 
 const sendMessage = async () => {
-  if (!inputValue.trim()) return;
+  if (isTyping || !inputValue.trim()) return;
 
   const userMessage: Message = {
     id: Date.now().toString(),
@@ -100,7 +100,7 @@ const sendMessage = async () => {
   contents: [
     {
       role: "user",
-      parts: [{ text: "You are an ESG assistant named Sustain Pro. Provide helpful, factual, and concise answers related to ESG, sustainability, and reporting. Give the answer in 2-3 lines only for general questions. Give the response in no styling (non-bold, non-italic) format." }]
+      parts: [{ text: "You are an ESG assistant named Sustain Pro. This website contains 7 tabs named as Dashboard, Data Submission, ESG-Analysis, Analytics, TradeOff Simulator, Supplier Directory, Monitoring. All these tabs names self-explain their functionality. This website is made for 3 personas Procurement Analyst, Vendor manager, Sustainability Head. The steps to follow for each persona and supplier is written on the dashboard. Provide helpful, factual, and concise answers related to ESG, sustainability, and reporting. Give the answer in 2-3 lines only for general questions. Give the response in no styling (non-bold, non-italic) format." }]
     },
     {
       role: "user",
@@ -132,6 +132,9 @@ const sendMessage = async () => {
       timestamp: new Date(),
     };
     setMessages((prev) => [...prev, errorMessage]);
+  }
+  finally {
+    setIsTyping(false); // This ensures the input is re-enabled even if there's an error
   }
 
   setIsTyping(false);
@@ -335,6 +338,7 @@ const sendMessage = async () => {
                         onKeyPress={handleKeyPress}
                         placeholder="Ask me about ESG, sustainability, or data submission..."
                         className="pr-12 focus-visible:ring-green-500"
+                        disabled={isTyping}
                       />
                       <Button
                         variant="ghost"

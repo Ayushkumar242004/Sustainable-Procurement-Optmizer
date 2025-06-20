@@ -13,6 +13,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
 
+from app.routes import profile
+
 # Google Gemini
 import google.generativeai as genai
 
@@ -54,6 +56,7 @@ app.include_router(auth.router)
 app.include_router(esg.router, prefix="/api")
 app.include_router(recommendations.router)
 app.include_router(reportGeneration.router)
+app.include_router(profile.router)
 
 # ------------------- Custom Exception Handler -------------------
 @app.exception_handler(RequestValidationError)
@@ -92,3 +95,9 @@ async def get_all_suppliers():
     except Exception as e:
         logger.exception("Error fetching suppliers")
         return {"error": str(e)}
+
+
+
+
+
+
