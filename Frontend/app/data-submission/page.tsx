@@ -98,7 +98,7 @@ export default function DataSubmissionPage() {
       }
     };
 
-    const updateFormFields = (parsed) => {
+    const updateFormFields = (parsed: any) => {
       setCompanyName(parsed.company_name || "");
       setReportingYear(parsed.reporting_year?.toString() || "");
       setCompanyGhgEmissionsPerUnitRevenue(parsed.company_ghg_emissions_per_unit_revenue?.toString() || "");
