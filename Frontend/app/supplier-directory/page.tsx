@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,69 +23,18 @@ import { Search, Filter, MapPin, Calendar, FileText, Award, TrendingUp, External
 const suppliers = [
   {
     id: 1,
-    name: "GreenTech Solutions",
-    location: "Berlin, Germany",
-    category: "Technology",
+    name: "Ford",
+    location: "Bangalore, India",
+    category: "Automotive",
     esgScore: 92,
     overallScore: 89,
-    certifications: ["ISO 14001", "B-Corp", "OHSAS 18001"],
+  
     joinDate: "2022-03-15",
     status: "Active",
-    contact: "contact@greentech.de",
-    website: "www.greentech-solutions.de",
+    contact: "contact@ford.com",
+    website: "https://www.ford.com/",
   },
-  {
-    id: 2,
-    name: "EcoManufacturing Co",
-    location: "Amsterdam, Netherlands",
-    category: "Manufacturing",
-    esgScore: 87,
-    overallScore: 89,
-    certifications: ["ISO 14001", "OHSAS 18001"],
-    joinDate: "2021-11-20",
-    status: "Active",
-    contact: "info@ecomanufacturing.nl",
-    website: "www.ecomanufacturing.nl",
-  },
-  {
-    id: 3,
-    name: "SustainableParts Inc",
-    location: "Austin, USA",
-    category: "Components",
-    esgScore: 78,
-    overallScore: 90,
-    certifications: ["ISO 9001"],
-    joinDate: "2023-01-10",
-    status: "Under Review",
-    contact: "sales@sustainableparts.com",
-    website: "www.sustainableparts.com",
-  },
-  {
-    id: 4,
-    name: "CleanEnergy Corp",
-    location: "Copenhagen, Denmark",
-    category: "Energy",
-    esgScore: 85,
-    overallScore: 91,
-    certifications: ["ISO 14001", "ISO 50001"],
-    joinDate: "2022-07-08",
-    status: "Active",
-    contact: "hello@cleanenergy.dk",
-    website: "www.cleanenergy.dk",
-  },
-  {
-    id: 5,
-    name: "BudgetSupply Ltd",
-    location: "Manchester, UK",
-    category: "General Supplies",
-    esgScore: 65,
-    overallScore: 91,
-    certifications: ["ISO 9001"],
-    joinDate: "2023-05-22",
-    status: "Active",
-    contact: "orders@budgetsupply.co.uk",
-    website: "www.budgetsupply.co.uk",
-  },
+
 ]
 
 const esgHistoryData = [
@@ -98,10 +47,8 @@ const esgHistoryData = [
 ]
 
 const documents = [
-  { name: "ESG Policy 2024", type: "Policy", date: "2024-01-15", status: "Approved" },
-  { name: "Carbon Footprint Report", type: "Report", date: "2024-02-20", status: "Under Review" },
-  { name: "Labor Standards Certificate", type: "Certificate", date: "2024-03-10", status: "Approved" },
-  { name: "Supply Chain Transparency", type: "Report", date: "2024-04-05", status: "Pending" },
+  { name: "ESG Report 2023", type: "Policy", date: "2025-06-19", status: "Approved" },
+ 
 ]
 
 function getScoreBadgeVariant(score: number) {
@@ -145,6 +92,63 @@ export default function SupplierDirectory() {
   })
 
   const categories = [...new Set(suppliers.map((s) => s.category))]
+
+  const [allScores, setAllScores] = useState<{
+      E_score?: number;
+      S_score?: number;
+      G_score?: number;
+      ESG_score?: number;
+      Cost_Efficiency?: number;
+      Risk_Score?: number;
+      Reliability_Score?: number;
+    }>({});
+    const [overallScore, setOverallScore] = useState(0);
+  
+    const handleShowOverallScore = async () => {
+      const esgCategoryRaw = localStorage.getItem("esg_category_scores");
+      const remainingRaw = localStorage.getItem("remainingScores");
+      const overall_score = localStorage.getItem("overallScore");
+      setOverallScore(overall_score ? parseFloat(overall_score) : 0);
+      if (!esgCategoryRaw || !remainingRaw) {
+        alert("Score data not found in localStorage.");
+        return;
+      }
+  
+      try {
+        const parsedESG = JSON.parse(esgCategoryRaw);
+        const parsedRemaining = JSON.parse(remainingRaw);
+  
+        const { E_score, S_score, G_score, ESG_score } = parsedESG;
+  
+        const scoreText = parsedRemaining[0]; // "Cost Efficiency: 88\nRisk Score: 12\nReliability Score: 95"
+        const scoreLines = scoreText.split("\n");
+  
+        const remainingScores: any = {};
+        scoreLines.forEach((line: string) => {
+          const [key, value] = line.split(":").map(s => s.trim());
+          if (key === "Cost Efficiency") remainingScores.Cost_Efficiency = parseFloat(value);
+          else if (key === "Risk Score") remainingScores.Risk_Score = parseFloat(value);
+          else if (key === "Reliability Score") remainingScores.Reliability_Score = parseFloat(value);
+        });
+  
+        setAllScores({
+          E_score,
+          S_score,
+          G_score,
+          ESG_score,
+          ...remainingScores,
+        });
+  
+        
+      } catch (e) {
+        console.error("Error parsing localStorage data:", e);
+        alert("Failed to load score data.");
+      }
+    };
+  
+   useEffect(() => {
+    handleShowOverallScore();
+  }, []);
 
   return (
     <div className="container mx-auto p-6 space-y-8">
@@ -219,7 +223,7 @@ export default function SupplierDirectory() {
                 <TableHead>Category</TableHead>
                 <TableHead>ESG Score</TableHead>
                 <TableHead>Overall Score</TableHead> {/* New column header */}
-                <TableHead>Certifications</TableHead>
+              
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -241,24 +245,10 @@ export default function SupplierDirectory() {
                   </TableCell>
                   <TableCell>{supplier.category}</TableCell>
                   <TableCell>
-                    <Badge variant={getScoreBadgeVariant(supplier.esgScore)}>{supplier.esgScore}/100</Badge>
+                    <Badge variant={getScoreBadgeVariant(allScores.ESG_score||supplier.esgScore)}>{allScores.ESG_score}/100</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{supplier.overallScore}/100</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {supplier.certifications.slice(0, 2).map((cert, i) => (
-                        <Badge key={i} variant="outline" className="text-xs">
-                          {cert}
-                        </Badge>
-                      ))}
-                      {supplier.certifications.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{supplier.certifications.length - 2}
-                        </Badge>
-                      )}
-                    </div>
+                    <Badge variant="secondary">{overallScore}/100</Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant={getStatusBadgeVariant(supplier.status)}>{supplier.status}</Badge>
@@ -275,8 +265,8 @@ export default function SupplierDirectory() {
                         <DialogHeader>
                           <DialogTitle className="flex items-center space-x-2">
                             <span>{supplier.name}</span>
-                            <Badge variant={getScoreBadgeVariant(supplier.esgScore)}>
-                              ESG: {supplier.esgScore}/100
+                            <Badge variant={getScoreBadgeVariant(allScores.ESG_score ?? 0)}>
+                              ESG: {allScores.ESG_score ?? 0}/100
                             </Badge>
                           </DialogTitle>
                           <DialogDescription>Detailed supplier profile and performance metrics</DialogDescription>
@@ -285,9 +275,9 @@ export default function SupplierDirectory() {
                         <Tabs defaultValue="overview" className="w-full">
                           <TabsList className="grid w-full grid-cols-4">
                             <TabsTrigger value="overview">Overview</TabsTrigger>
-                            <TabsTrigger value="esg">ESG History</TabsTrigger>
                             <TabsTrigger value="documents">Documents</TabsTrigger>
                             <TabsTrigger value="kpis">KPIs</TabsTrigger>
+                            <TabsTrigger value="esg">ESG History</TabsTrigger>
                           </TabsList>
 
                           <TabsContent value="overview" className="space-y-4">
@@ -314,21 +304,7 @@ export default function SupplierDirectory() {
                                 </CardContent>
                               </Card>
 
-                              <Card>
-                                <CardHeader>
-                                  <CardTitle className="text-lg">Certifications</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                  <div className="flex flex-wrap gap-2">
-                                    {supplier.certifications.map((cert, i) => (
-                                      <Badge key={i} variant="outline" className="flex items-center space-x-1">
-                                        <Award className="h-3 w-3" />
-                                        <span>{cert}</span>
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                </CardContent>
-                              </Card>
+                             
                             </div>
                           </TabsContent>
 

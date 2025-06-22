@@ -256,7 +256,7 @@ export default function ESGAnalysis() {
   const [recAccordionOpen, setRecAccordionOpen] = useState(false);
 
 // Function to fetch recommendations from Gemini
-const fetchRecommendations = async (supplier_name) => {
+const fetchRecommendations = async (supplier_name: string) => {
   console.log("⏳ STARTING fetchRecommendations");
   setLoadingRecommendations(true);
   setRecommendations([]);
@@ -399,12 +399,14 @@ const fetchRecommendations = async (supplier_name) => {
       const supplier = suppliers.find(s => s.company_name === selectedSupplier)
 
       try {
+        if (!supplier) return;
+
         const data = typeof supplier.esg_subfactor_scores === 'string' 
         ? JSON.parse(supplier.esg_subfactor_scores) 
         : supplier.esg_subfactor_scores;
 
         
-        if (data.Environmental) {
+        if (data && data.Environmental) {
           setGhgScore(data.Environmental["GHG Score"] ?? "");
           setEnergyEfficiencyScore(data.Environmental["Energy Score"] ?? ""); // Fixed
           setWaterEfficiencyScore(data.Environmental["Water Score"] ?? ""); // Fixed
@@ -416,7 +418,7 @@ const fetchRecommendations = async (supplier_name) => {
         }
 
         // 👥 Social
-        if (data.Social) {
+        if (data && data.Social) {
           setRetentionScore(data.Social["Retention Score"] ?? "");
           setSafetyScore(data.Social["Safety Score"] ?? "");
           setDiversityScore(data.Social["Diversity Score"] ?? "");
@@ -427,7 +429,7 @@ const fetchRecommendations = async (supplier_name) => {
         }
 
         // 🏛 Governance
-        if (data.Governance) {
+        if (data && data.Governance) {
           setBoardIndependenceScore(data.Governance["Board Independence"] ?? ""); // Fixed
           setCompensationAlignmentScore(data.Governance["Compensation Score"] ?? ""); // Fixed
           setAuditCommitteeScore(data.Governance["Audit Score"] ?? ""); // Fixed

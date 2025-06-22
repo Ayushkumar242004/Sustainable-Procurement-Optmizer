@@ -16,12 +16,7 @@ import { RefreshCw, TrendingUp, TrendingDown, Info, Send, Bot, User, Mic, MicOff
 import { Chatbot } from "@/components/chatbot"
 
 const initialSuppliers = [
-  { id: 1, name: "GreenTech Solutions", cost: 85, sustainability: 92, risk: 15, reliability: 88, overallScore: 0 },
-  { id: 2, name: "EcoManufacturing Co", cost: 78, sustainability: 87, risk: 25, reliability: 85, overallScore: 0 },
-  { id: 3, name: "SustainableParts Inc", cost: 92, sustainability: 78, risk: 35, reliability: 82, overallScore: 0 },
-  { id: 4, name: "CleanEnergy Corp", cost: 80, sustainability: 85, risk: 20, reliability: 90, overallScore: 0 },
-  { id: 5, name: "BudgetSupply Ltd", cost: 95, sustainability: 65, risk: 45, reliability: 75, overallScore: 0 },
-  { id: 6, name: "ReliableCorp", cost: 82, sustainability: 70, risk: 30, reliability: 95, overallScore: 0 },
+  { id: 1, name: "Ford", cost: 85, sustainability: 92, risk: 15, reliability: 88, overallScore: 0 },
 ]
 
 const tradeOffPresets = [
@@ -70,6 +65,62 @@ export default function TradeOffSimulator() {
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [isListening, setIsListening] = useState(false)
+
+   const [showModal, setShowModal] = useState(false);
+    const [allScores, setAllScores] = useState<{
+      E_score?: number;
+      S_score?: number;
+      G_score?: number;
+      ESG_score?: number;
+      Cost_Efficiency?: number;
+      Risk_Score?: number;
+      Reliability_Score?: number;
+    }>({});
+  
+    const handleShowOverallScore = async () => {
+      const esgCategoryRaw = localStorage.getItem("esg_category_scores");
+      const remainingRaw = localStorage.getItem("remainingScores");
+  
+      if (!esgCategoryRaw || !remainingRaw) {
+        alert("Score data not found in localStorage.");
+        return;
+      }
+  
+      try {
+        const parsedESG = JSON.parse(esgCategoryRaw);
+        const parsedRemaining = JSON.parse(remainingRaw);
+  
+        const { E_score, S_score, G_score, ESG_score } = parsedESG;
+  
+        const scoreText = parsedRemaining[0]; // "Cost Efficiency: 88\nRisk Score: 12\nReliability Score: 95"
+        const scoreLines = scoreText.split("\n");
+  
+        const remainingScores: any = {};
+        scoreLines.forEach((line: string) => {
+          const [key, value] = line.split(":").map(s => s.trim());
+          if (key === "Cost Efficiency") remainingScores.Cost_Efficiency = parseFloat(value);
+          else if (key === "Risk Score") remainingScores.Risk_Score = parseFloat(value);
+          else if (key === "Reliability Score") remainingScores.Reliability_Score = parseFloat(value);
+        });
+  
+        setAllScores({
+          E_score,
+          S_score,
+          G_score,
+          ESG_score,
+          ...remainingScores,
+        });
+  
+        setShowModal(true);
+      } catch (e) {
+        console.error("Error parsing localStorage data:", e);
+        alert("Failed to load score data.");
+      }
+    };
+  
+  useEffect(() => {
+  handleShowOverallScore();
+}, []);
 
   const calculateOverallScore = (supplier: any, weights: any) => {
     return (
@@ -127,7 +178,7 @@ export default function TradeOffSimulator() {
     const maxFactor = Object.keys(weights).find((key) => weights[key as keyof typeof weights] === maxWeight)
 
     const implications = {
-      cost: "Prioritizing cost may lead to lower ESG scores and higher risks",
+      cost: "Prioritizing risk may lead to lower overall score and higher risks",
       sustainability: "Focus on sustainability may increase costs but improve brand reputation",
       risk: "Risk-averse approach ensures stability but may limit innovation",
       reliability: "Reliability focus ensures consistent delivery but may increase costs",
@@ -215,6 +266,46 @@ export default function TradeOffSimulator() {
     }
   }
 
+  const [costWeight, setCostWeight] = useState(25);
+const [sustainabilityWeight, setSustainabilityWeight] = useState(25);
+const [riskWeight, setRiskWeight] = useState(25);
+const [reliabilityWeight, setReliabilityWeight] = useState(25);
+
+const [overallScore, setOverallScore] = useState(0);
+
+useEffect(() => {
+  const {
+    ESG_score = 0,
+    Cost_Efficiency = 0,
+    Risk_Score = 0,
+    Reliability_Score = 0,
+  } = allScores;
+
+  // Calculate weighted sum
+  const totalWeight =
+    sustainabilityWeight + costWeight + riskWeight + reliabilityWeight;
+
+  if (totalWeight === 0) {
+    setOverallScore(0);
+    return;
+  }
+
+  const weightedSum =
+    (sustainabilityWeight * ESG_score +
+      costWeight * Cost_Efficiency +
+      riskWeight * Risk_Score +
+      reliabilityWeight * Reliability_Score) /
+    totalWeight;
+
+  setOverallScore(weightedSum);
+  localStorage.setItem("overallScore", JSON.stringify(weightedSum));
+}, [
+  allScores,
+  costWeight,
+  sustainabilityWeight,
+  riskWeight,
+  reliabilityWeight,
+]);
    return (
     <div className="relative pt-20 min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto p-6 space-y-8">
@@ -238,71 +329,80 @@ export default function TradeOffSimulator() {
                   <CardDescription>Adjust the importance of each factor</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <label className="text-sm font-medium">Cost Efficiency</label>
-                        <span className="text-sm text-muted-foreground">{weights.cost}%</span>
-                      </div>
-                      <Slider
-                        value={[weights.cost]}
-                        onValueChange={(value) => handleWeightChange("cost", value)}
-                        max={100}
-                        step={5}
-                        className="w-full"
-                      />
-                    </div>
+  <div className="space-y-4">
+    <div className="space-y-2">
+      <div className="flex justify-between">
+        <label className="text-sm font-medium">Cost Efficiency</label>
+        <span className="text-sm text-muted-foreground">{costWeight}%</span>
+      </div>
+      <Slider
+        value={[costWeight]}
+        onValueChange={([value]) => setCostWeight(value)}
+        max={100}
+        step={5}
+        className="w-full"
+      />
+    </div>
 
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <label className="text-sm font-medium">Sustainability</label>
-                        <span className="text-sm text-muted-foreground">{weights.sustainability}%</span>
-                      </div>
-                      <Slider
-                        value={[weights.sustainability]}
-                        onValueChange={(value) => handleWeightChange("sustainability", value)}
-                        max={100}
-                        step={5}
-                        className="w-full"
-                      />
-                    </div>
+    <div className="space-y-2">
+      <div className="flex justify-between">
+        <label className="text-sm font-medium">Sustainability</label>
+        <span className="text-sm text-muted-foreground">{sustainabilityWeight}%</span>
+      </div>
+      <Slider
+        value={[sustainabilityWeight]}
+        onValueChange={([value]) => setSustainabilityWeight(value)}
+        max={100}
+        step={5}
+        className="w-full"
+      />
+    </div>
 
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <label className="text-sm font-medium">Risk Management</label>
-                        <span className="text-sm text-muted-foreground">{weights.risk}%</span>
-                      </div>
-                      <Slider
-                        value={[weights.risk]}
-                        onValueChange={(value) => handleWeightChange("risk", value)}
-                        max={100}
-                        step={5}
-                        className="w-full"
-                      />
-                    </div>
+    <div className="space-y-2">
+      <div className="flex justify-between">
+        <label className="text-sm font-medium">Risk Management</label>
+        <span className="text-sm text-muted-foreground">{riskWeight}%</span>
+      </div>
+      <Slider
+        value={[riskWeight]}
+        onValueChange={([value]) => setRiskWeight(value)}
+        max={100}
+        step={5}
+        className="w-full"
+      />
+    </div>
 
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <label className="text-sm font-medium">Reliability</label>
-                        <span className="text-sm text-muted-foreground">{weights.reliability}%</span>
-                      </div>
-                      <Slider
-                        value={[weights.reliability]}
-                        onValueChange={(value) => handleWeightChange("reliability", value)}
-                        max={100}
-                        step={5}
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
+    <div className="space-y-2">
+      <div className="flex justify-between">
+        <label className="text-sm font-medium">Reliability</label>
+        <span className="text-sm text-muted-foreground">{reliabilityWeight}%</span>
+      </div>
+      <Slider
+        value={[reliabilityWeight]}
+        onValueChange={([value]) => setReliabilityWeight(value)}
+        max={100}
+        step={5}
+        className="w-full"
+      />
+    </div>
+  </div>
 
-                  <div className="flex space-x-2">
-                    <Button onClick={resetWeights} variant="outline" size="sm">
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Reset
-                    </Button>
-                  </div>
-                </CardContent>
+  <div className="flex space-x-2">
+    <Button
+      onClick={() => {
+        setCostWeight(25);
+        setSustainabilityWeight(25);
+        setRiskWeight(25);
+        setReliabilityWeight(25);
+      }}
+      variant="outline"
+      size="sm"
+    >
+      <RefreshCw className="h-4 w-4 mr-2" />
+      Reset
+    </Button>
+  </div>
+</CardContent>
               </Card>
 
               <Card>
@@ -311,17 +411,67 @@ export default function TradeOffSimulator() {
                   <CardDescription>Apply common weight configurations</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {tradeOffPresets.map((preset, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => applyPreset(preset)}
-                    >
-                      {preset.name}
-                    </Button>
-                  ))}
-                </CardContent>
+  <Button
+    variant="outline"
+    className="w-full justify-start"
+    onClick={() => {
+      setCostWeight(50);
+      setSustainabilityWeight(20);
+      setRiskWeight(15);
+      setReliabilityWeight(15);
+    }}
+  >
+    Cost Focused
+  </Button>
+  <Button
+    variant="outline"
+    className="w-full justify-start"
+    onClick={() => {
+      setCostWeight(15);
+      setSustainabilityWeight(50);
+      setRiskWeight(20);
+      setReliabilityWeight(15);
+    }}
+  >
+    Sustainability Focused
+  </Button>
+  <Button
+    variant="outline"
+    className="w-full justify-start"
+    onClick={() => {
+      setCostWeight(20);
+      setSustainabilityWeight(25);
+      setRiskWeight(40);
+      setReliabilityWeight(15);
+    }}
+  >
+    Risk Focused
+  </Button>
+  <Button
+    variant="outline"
+    className="w-full justify-start"
+    onClick={() => {
+      setCostWeight(20);
+      setSustainabilityWeight(20);
+      setRiskWeight(15);
+      setReliabilityWeight(45);
+    }}
+  >
+    Reliability Focused
+  </Button>
+  <Button
+    variant="outline"
+    className="w-full justify-start"
+    onClick={() => {
+      setCostWeight(25);
+      setSustainabilityWeight(25);
+      setRiskWeight(25);
+      setReliabilityWeight(25);
+    }}
+  >
+    Balanced Focused
+  </Button>
+</CardContent>
               </Card>
 
               <Alert>
@@ -362,22 +512,22 @@ export default function TradeOffSimulator() {
                             <h3 className="font-semibold">{supplier.name}</h3>
                             <div className="flex space-x-2 mt-1">
                               <Badge variant="outline" className="text-xs">
-                                Cost: {supplier.cost}
+                                Cost: {allScores.Cost_Efficiency }
                               </Badge>
                               <Badge variant="outline" className="text-xs">
-                                ESG: {supplier.sustainability}
+                                ESG: {allScores.ESG_score}
                               </Badge>
                               <Badge variant="outline" className="text-xs">
-                                Risk: {supplier.risk}
+                                Risk: {allScores.Risk_Score}
                               </Badge>
                               <Badge variant="outline" className="text-xs">
-                                Reliability: {supplier.reliability}
+                                Reliability: {allScores.Reliability_Score}
                               </Badge>
                             </div>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-2xl font-bold">{Math.round(supplier.overallScore)}</div>
+                          <div className="text-2xl font-bold">{overallScore.toFixed(2)}</div>
                           <div className="text-sm text-muted-foreground">Overall Score</div>
                         </div>
                       </div>
@@ -386,7 +536,7 @@ export default function TradeOffSimulator() {
                 </CardContent>
               </Card>
 
-              <Card>
+              {/* <Card>
                 <CardHeader>
                   <CardTitle>Score Comparison</CardTitle>
                   <CardDescription>Visual comparison of top suppliers</CardDescription>
@@ -402,7 +552,7 @@ export default function TradeOffSimulator() {
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
-              </Card>
+              </Card> */}
             </div>
           </div>
         </div>

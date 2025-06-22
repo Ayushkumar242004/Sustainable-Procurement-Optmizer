@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Menu, Leaf, Home, Upload, Sliders, Database, ClipboardCheck, Bell, LogOut, Building, Mail } from "lucide-react"
+import { Menu, Leaf, Home, Upload, Sliders, Database, ClipboardCheck, Bell, LogOut, Building, Mail, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/use-auth"
 

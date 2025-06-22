@@ -22,3 +22,9 @@ class EmployeeRegister(BaseModel):
 class EmployeeLogin(BaseModel):
     email: EmailStr
     password: str
+class ProfileUpdate(BaseModel):
+    # email: Optional[EmailStr] = None
+    role: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
