@@ -11,7 +11,7 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
-import { Upload, CheckCircle, Leaf, Users, Shield, Factory, Award, FileText, ChevronDown, ChevronUp, HelpCircle , Loader2 } from "lucide-react"
+import { Upload, CheckCircle, AlertTriangle , Leaf, Users, Shield, Factory, Award, FileText, ChevronDown, ChevronUp, HelpCircle , Loader2 } from "lucide-react"
 import { Chatbot } from "@/components/chatbot"
 import { useEffect } from "react"
 import { useRouter } from "next/router";
@@ -23,6 +23,9 @@ const sections = [
   { id: "governance", title: "Governance", icon: Shield, description: "Corporate governance metrics" },
   { id: "documents", title: "Documents", icon: FileText, description: "Supporting documentation" }
 ]
+
+const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+const email = userData.email;
 
 export default function DataSubmissionPage() {
 
@@ -62,80 +65,106 @@ export default function DataSubmissionPage() {
   const [numberCorruptionIncidentsSeverityWeight, setNumberCorruptionIncidentsSeverityWeight] = useState("");
   const [numberDisclosedTaxJurisdictions, setNumberDisclosedTaxJurisdictions] = useState("");
   const [totalNumberOperatingJurisdictions, setTotalNumberOperatingJurisdictions] = useState("");
+
+  // function to update value 
+  const updateFormFields = (parsed: any) => {
+    setCompanyName(parsed.company_name || "");
+    setReportingYear(parsed.reporting_year?.toString() || "");
+    setCompanyGhgEmissionsPerUnitRevenue(parsed.company_ghg_emissions_per_unit_revenue?.toString() || "");
+    setCompanyEnergyConsumptionPerUnitOutput(parsed.company_energy_consumption_per_unit_output?.toString() || "");
+    setCompanyWaterWithdrawalPerUnitOutput(parsed.company_water_withdrawal_per_unit_output?.toString() || "");
+    setAmountWasteRecycled(parsed.amount_waste_recycled?.toString() || "");
+    setTotalWasteGenerated(parsed.total_waste_generated?.toString() || "");
+    setEnvironmentalFinesPenaltyWeight(parsed.environmental_fines_penalty_weight?.toString() || "");
+    setRenewableEnergyConsumption(parsed.renewable_energy_consumption?.toString() || "");
+    setTotalEnergyConsumption(parsed.total_energy_consumption?.toString() || "");
+    setBiodiversityImpactScore(parsed.biodiversity_impact_score?.toString() || "");
+    setClimateRiskMitigationMeasuresImplemented(parsed.climate_risk_mitigation_measures_implemented?.toString() || "");
+    setTotalApplicableMeasures(parsed.total_applicable_measures?.toString() || "");
+    setEmployeeTurnoverRate(parsed.employee_turnover_rate?.toString() || "");
+    setCompanyInjuryRate(parsed.company_injury_rate?.toString() || "");
+    setNumberDiverseEmployees(parsed.number_diverse_employees?.toString() || "");
+    setTotalEmployees(parsed.total_employees?.toString() || "");
+    setAmountInvestedCommunityPrograms(parsed.amount_invested_community_programs?.toString() || "");
+    setTotalRevenue(parsed.total_revenue?.toString() || "");
+    setNetPromoterScore(parsed.net_promoter_score?.toString() || "");
+    setNumberReportedViolationsSeverityWeight(parsed.number_reported_violations_severity_weight?.toString() || "");
+    setAvgTrainingHoursPerEmployee(parsed.avg_training_hours_per_employee?.toString() || "");
+    setNumberIndependentDirectors(parsed.number_independent_directors?.toString() || "");
+    setTotalNumberDirectors(parsed.total_number_directors?.toString() || "");
+    setCeoPayRatio(parsed.ceo_pay_ratio?.toString() || "");
+    setNumberIndependentAuditCommitteeMembers(parsed.number_independent_audit_committee_members?.toString() || "");
+    setTotalAuditCommitteeMembers(parsed.total_audit_committee_members?.toString() || "");
+    setNumberShareholderFriendlyPoliciesImplemented(parsed.number_shareholder_friendly_policies_implemented?.toString() || "");
+    setTotalNumberEvaluatedPolicies(parsed.total_number_evaluated_policies?.toString() || "");
+    setNumberDisclosedEsgMetrics(parsed.number_disclosed_esg_metrics?.toString() || "");
+    setTotalNumberRelevantEsgMetrics(parsed.total_number_relevant_esg_metrics?.toString() || "");
+    setNumberCorruptionIncidentsSeverityWeight(parsed.number_corruption_incidents_severity_weight?.toString() || "");
+    setNumberDisclosedTaxJurisdictions(parsed.number_disclosed_tax_jurisdictions?.toString() || "");
+    setTotalNumberOperatingJurisdictions(parsed.total_number_operating_jurisdictions?.toString() || "");
+  };
+
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [esgResult, setEsgResult] = useState(null);
-  const [overallData, setOverallData] = useState(null);
+  const [ hasData , setHasdata ] = useState( false ) ; 
 
-    // Prefill from storage 
-    useEffect(() => {
-      const fetchAndPrefillESGData = async () => {
-      try {
-        const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-        const email = userData.email;
-        if (!email) return;
-
-        // Always try to fetch from DB first on reload
-        const dbResponse = await fetch(`http://localhost:8000/api/get-esg-prefill`, {
+  // this useEffect will run on the first load of the route
+  useEffect( ( ) => { 
+    const checkData = async ( ) => {
+      try{
+        const dbResponse = await fetch('http://localhost:8000/api/get-esg-prefill' , 
+        {
           headers: { "email": email }
-        });
+        }) ; 
         
         if (dbResponse.ok) {
           const dbData = await dbResponse.json();
           console.log("Prefilled from DB:", dbData.result);
+          setHasdata( true );
           updateFormFields(dbData.result);
           return;
         }
-
-        // Fallback to esgResult if exists (for upload scenario)
-        if (esgResult) {
-          console.log("Prefilled from memory:", esgResult);
-          updateFormFields(esgResult);
-        }
-
-      } catch (err) {
-        console.error("Prefill error:", err);
+        
+        setHasdata( false ) ; 
+      }catch (err) {
+        console.error("error:", err);
       }
-    };
+    }
+    checkData( ) ; 
+  } ,  [ ])
+  
+  // thes states can be removed later , keeping the logic for now 
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-    const updateFormFields = (parsed: any) => {
-      setCompanyName(parsed.company_name || "");
-      setReportingYear(parsed.reporting_year?.toString() || "");
-      setCompanyGhgEmissionsPerUnitRevenue(parsed.company_ghg_emissions_per_unit_revenue?.toString() || "");
-      setCompanyEnergyConsumptionPerUnitOutput(parsed.company_energy_consumption_per_unit_output?.toString() || "");
-      setCompanyWaterWithdrawalPerUnitOutput(parsed.company_water_withdrawal_per_unit_output?.toString() || "");
-      setAmountWasteRecycled(parsed.amount_waste_recycled?.toString() || "");
-      setTotalWasteGenerated(parsed.total_waste_generated?.toString() || "");
-      setEnvironmentalFinesPenaltyWeight(parsed.environmental_fines_penalty_weight?.toString() || "");
-      setRenewableEnergyConsumption(parsed.renewable_energy_consumption?.toString() || "");
-      setTotalEnergyConsumption(parsed.total_energy_consumption?.toString() || "");
-      setBiodiversityImpactScore(parsed.biodiversity_impact_score?.toString() || "");
-      setClimateRiskMitigationMeasuresImplemented(parsed.climate_risk_mitigation_measures_implemented?.toString() || "");
-      setTotalApplicableMeasures(parsed.total_applicable_measures?.toString() || "");
-      setEmployeeTurnoverRate(parsed.employee_turnover_rate?.toString() || "");
-      setCompanyInjuryRate(parsed.company_injury_rate?.toString() || "");
-      setNumberDiverseEmployees(parsed.number_diverse_employees?.toString() || "");
-      setTotalEmployees(parsed.total_employees?.toString() || "");
-      setAmountInvestedCommunityPrograms(parsed.amount_invested_community_programs?.toString() || "");
-      setTotalRevenue(parsed.total_revenue?.toString() || "");
-      setNetPromoterScore(parsed.net_promoter_score?.toString() || "");
-      setNumberReportedViolationsSeverityWeight(parsed.number_reported_violations_severity_weight?.toString() || "");
-      setAvgTrainingHoursPerEmployee(parsed.avg_training_hours_per_employee?.toString() || "");
-      setNumberIndependentDirectors(parsed.number_independent_directors?.toString() || "");
-      setTotalNumberDirectors(parsed.total_number_directors?.toString() || "");
-      setCeoPayRatio(parsed.ceo_pay_ratio?.toString() || "");
-      setNumberIndependentAuditCommitteeMembers(parsed.number_independent_audit_committee_members?.toString() || "");
-      setTotalAuditCommitteeMembers(parsed.total_audit_committee_members?.toString() || "");
-      setNumberShareholderFriendlyPoliciesImplemented(parsed.number_shareholder_friendly_policies_implemented?.toString() || "");
-      setTotalNumberEvaluatedPolicies(parsed.total_number_evaluated_policies?.toString() || "");
-      setNumberDisclosedEsgMetrics(parsed.number_disclosed_esg_metrics?.toString() || "");
-      setTotalNumberRelevantEsgMetrics(parsed.total_number_relevant_esg_metrics?.toString() || "");
-      setNumberCorruptionIncidentsSeverityWeight(parsed.number_corruption_incidents_severity_weight?.toString() || "");
-      setNumberDisclosedTaxJurisdictions(parsed.number_disclosed_tax_jurisdictions?.toString() || "");
-      setTotalNumberOperatingJurisdictions(parsed.total_number_operating_jurisdictions?.toString() || "");
-    };
-    fetchAndPrefillESGData();
-  }, [uploadProgress , esgResult ]);
+  const handleFinalESGSubmit = async () => {
+  setIsSubmitting(true);
+  try {
+    const response = await fetch("http://localhost:8000/api/calculate-and-store-esg", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }), // Send as JSON
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to calculate ESG score");
+    }
+
+    const data = await response.json();
+    
+    console.log("ESG scores calculated:", data);
+    setIsSubmitted(true); 
+    return data;
+  } catch (err: any) {
+    console.error("ESG Calculation Error:", err);
+    throw err;
+  }finally{
+    setIsSubmitting( false )
+  }
+  };
 
   // <---- Handles file uploads ---->
   const handleFileUpload = async (key: string, file: File) => {
@@ -160,25 +189,32 @@ export default function DataSubmissionPage() {
       body: formData,
     });
 
-    setUploadProgress(60);
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || "Failed to upload ESG report.");
     }
 
     const data = await response.json();
-
-    setUploadProgress(90);
+    updateFormFields( data.result)
+    setUploadProgress(50);
     console.log("Upload and extraction successful:", data);
 
     // Optionally: you can store result in state or trigger a re-fetch of prefill
-    setEsgResult(data.result);
-    setOverallData(data.overall_data);
+    setHasdata( true ); 
+
+    // calling function to 
+    try {
+      await handleFinalESGSubmit();
+      setUploadProgress(100);
+    } catch (err) {
+    console.error("Final submission failed (non-blocking):", err);
+    } 
 
     setUploadProgress(100);
     setIsLoading(false);
   } catch (err) {
     setIsLoading(false);
+    setUploadProgress(0);
     console.error("Upload error:", err);
     alert("Failed to upload ESG report. Please try again.");
   }
@@ -240,11 +276,6 @@ export default function DataSubmissionPage() {
 
   const { toast } = useToast()
 
-  const updateFormData = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
-
-
   type SectionId = 'company' | 'environmental' | 'social' | 'governance' | 'documents';
 
   const toggleSection = (sectionId: SectionId) => {
@@ -254,62 +285,9 @@ export default function DataSubmissionPage() {
     }))
   }
 
-  const calculateProgress = () => {
-    const totalFields = Object.keys(formData).length
-    const filledFields = Object.values(formData).filter(
-      value => value !== "" && value !== null
-    ).length
-    return Math.round((filledFields / totalFields) * 100)
-  }
-  
-  // const handleSubmit = () => {
-
-  //   toast({
-  //     title: "Data submitted successfully!",
-  //     description: "Your ESG data has been submitted for calculation. Results will be available shortly.",
-  //   })
-  //   setTimeout(() => {
-  //   window.location.href = "http://localhost:3000/esg-analysis";
-  // }, 2000); 
-  // } 
-    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-    const [isSubmitted, setIsSubmitted] = useState(false);
-
-    const handleFinalESGSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-    const email = userData.email || "";
-
-    const response = await fetch("http://localhost:8000/api/calculate-and-store-esg", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email }), // Send as JSON
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Failed to calculate ESG score");
-    }
-
-    const data = await response.json();
-    console.log("ESG scores calculated:", data);
-    setIsSubmitted(true); 
-    return data;
-
-  } catch (err: any) {
-    console.error("ESG Calculation Error:", err);
-    throw err;
-  }finally{
-    setIsSubmitting( false )
-  }
-  };
-
   // Function to disable input feilds 
   const shouldDisableField = (fieldValue: string) => {
-  return ( uploadProgress === 100 ) && !fieldValue;
+  return !fieldValue;
   }
 
   return (
@@ -317,19 +295,42 @@ export default function DataSubmissionPage() {
 
       {/* loading component */}
       {isLoading && (
-      <div className="fixed inset-0 bg-background/90 backdrop-blur-sm z-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-lg font-medium">Processing your ESG document...</p>
-          <p className="text-muted-foreground">
-            Extracting data and populating fields ({uploadProgress}%)
-          </p>
-          <Progress 
-            value={uploadProgress} 
-            className="mt-4 w-64 mx-auto h-2" 
-          />
+        <div className="fixed inset-0 bg-background/90 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="text-center">
+            {/* Spinner (stops spinning at 100%) */}
+            <div 
+              className={`rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4 ${
+                uploadProgress < 100 ? "animate-spin" : ""
+              }`}
+            />
+
+            {/* Dynamic title (changes on completion) */}
+            <p className="text-lg font-medium">
+              {uploadProgress < 100 
+                ? "Processing your ESG document..." 
+                : "Done! Finalizing results..."
+              }
+            </p>
+
+            {/* Progress text (accessible via aria-live) */}
+            <p className="text-muted-foreground" aria-live="polite">
+              {uploadProgress < 50 
+                ? `Extracting data (${uploadProgress}%)` 
+                : `Calculating scores (${uploadProgress}%)` 
+              }
+            </p>
+
+            {/* Progress bar (hides at 100%) */}
+            {uploadProgress < 100 ? (
+              <Progress 
+                value={uploadProgress} 
+                className="mt-4 w-64 mx-auto h-2" 
+              />
+            ) : (
+              <div className="mt-4 h-2 w-64 mx-auto" /> // Spacer for layout consistency
+            )}
+          </div>
         </div>
-      </div>
       )}
 
       <div className="container mx-auto px-4 py-8">
@@ -343,13 +344,52 @@ export default function DataSubmissionPage() {
           </p>
         </div>
 
-        {/* Progress Bar */}
-        <div className="mb-8 animate-slide-up">
+        {/* Progress Bar with Status Message */}
+        <div className="max-w-6xl mx-auto mb-8 animate-slide-up">
           <div className="flex justify-between items-center mb-4">
-            <span className="text-sm font-medium">Submission Progress</span>
-            <span className="text-sm text-muted-foreground">{uploadProgress}% Complete</span>
+            <span className="text-sm font-medium text-foreground">Submission Progress</span>
+            <span className="text-sm text-muted-foreground">{hasData ? 100 : uploadProgress}% Complete</span>
           </div>
-        <Progress value={uploadProgress} className="h-2 transition-all duration-500" />
+          <Progress 
+            value={hasData ? 100 : uploadProgress} 
+            className="h-2 transition-all duration-500"
+          />
+          
+          {/* Status Message - Colors matched to Card component */}
+          <div className={`mt-4 p-4 rounded-lg flex items-start gap-3 transition-colors duration-200
+              ${hasData 
+                ? "bg-background border border-primary/30" 
+                : "bg-background border border-destructive/30"
+              }`}
+          >
+            {hasData ? (
+              <>
+                <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium text-foreground">Data successfully processed</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    ESG factors extracted from your document.{" "}
+                    <a 
+                      href="/esg-analysis" 
+                      className="text-primary hover:text-primary/80 underline transition-colors"
+                    >
+                      View full analysis
+                    </a>
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <AlertTriangle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium text-foreground">Upload required</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Please upload your ESG report to calculate scores
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="max-w-6xl mx-auto space-y-6">
@@ -950,7 +990,7 @@ export default function DataSubmissionPage() {
             </Card>
           ))}
 
-          {/* Submit Button */}
+          {/* Submit Button
           <div className="flex justify-center animate-slide-up pt-6">
              <Button
               onClick={handleFinalESGSubmit}
@@ -974,7 +1014,8 @@ export default function DataSubmissionPage() {
                 </>
               )}
             </Button>
-          </div>
+          </div> */}
+          
         </div>
       </div>
       <Chatbot />
