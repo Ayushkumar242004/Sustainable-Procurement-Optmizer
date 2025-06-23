@@ -33,7 +33,7 @@ export default function EmployeeLogin() {
       localStorage.setItem("token", data.token) 
         // user object contains email and role 
         localStorage.setItem("userData", JSON.stringify(data.user))
-        router.push("/") 
+        router.push("/guidance") 
       // Redirect logic can go here
     } catch (err: any) {
       toast.error(err.message)
