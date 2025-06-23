@@ -37,7 +37,7 @@ export default function ClientLayout({
 //   }
 
   // we can add role-based redirects here if needed later on
-
+  // }, [router, pathname])
 
   return (
     <html lang="en" suppressHydrationWarning>
