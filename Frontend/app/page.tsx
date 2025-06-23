@@ -514,9 +514,9 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <Separator className="my-8 lg:my-16" />
+        {/* <Separator className="my-8 lg:my-16" /> */}
 
-        {/* User Guidance Section */}
+        {/* User Guidance Section
         <section className="space-y-8 lg:space-y-12">
           <div className="text-center">
             <Badge variant="outline" className="mb-4">
@@ -588,9 +588,9 @@ export default function Dashboard() {
               ))}
             </div>
           )}
-        </section>
+        </section> */}
 
-        <Separator className="my-8 lg:my-16" />
+        {/* <Separator className="my-8 lg:my-16" /> */}
 
         {/* Dashboard Section */}
         {userRole !== "Supplier" && userPersona && (

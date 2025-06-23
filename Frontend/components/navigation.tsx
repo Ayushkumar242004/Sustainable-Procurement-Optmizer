@@ -35,6 +35,20 @@ export function Navigation() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+  useEffect(() => {
+    // Only redirect to guidance if user is authenticated and not already on guidance page
+    if (isAuthenticated && userData && pathname !== "/guidance") {
+      const guidanceKey = `guidance_completed_${userData.email}_${userData.role}`
+      const guidanceCompleted = localStorage.getItem(guidanceKey)
+      
+      console.log("Navigation: Checking guidance for user:", userData.email, "Completed:", guidanceCompleted)
+      
+      if (guidanceCompleted !== "true") {
+        console.log("Navigation: Redirecting to guidance")
+        router.push("/guidance")
+      }
+    }
+  }, [isAuthenticated, userData, pathname, router])
 
   // useEffect(() => {
   //   // Check for user data in localStorage
@@ -63,8 +77,13 @@ export function Navigation() {
       .toUpperCase()
   }
 
+
+  // Don't render if not authenticated
+  // if (!isAuthenticated) {
+  //   return null
+  // }
   // Don't render navigation on registration, login, or logout pages
-  if (pathname === "/registration" || pathname === "/login" || pathname === "/logout") {
+  if (pathname === "/registration" || pathname === "/login" || pathname === "/logout" || pathname === "/guidance") {
     return null
   }
 
@@ -223,4 +242,3 @@ function MobileNav({ onLogout }: { userData: any; onLogout: () => void }) {
     </div>
   )
 }
- 
