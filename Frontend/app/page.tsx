@@ -668,95 +668,134 @@ export default function Dashboard() {
   </div>
 </section>
 
-        {/* <Separator className="my-8 lg:my-16" /> */}
+        <Separator className="my-12" />
+        <section className="w-full py-20 bg-gradient-to-r from-primary to-blue-600 dark:from-[#E2142D] dark:via-[#2563eb] dark:to-[#a21caf] text-white relative overflow-hidden">
+  <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+  <div className="relative w-full px-4 text-center">
+    <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-extrabold mb-6">
+      Join Us in Building a Sustainable Future
+    </h2>
+    <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
+      Ready to transform your procurement practices? Let's work together to create a more sustainable and responsible supply chain.
+    </p>
 
-        {/* User Guidance Section
-        <section className="space-y-8 lg:space-y-12">
-          <div className="text-center">
-            <Badge variant="outline" className="mb-4">
-              <Info className="h-4 w-4 mr-2" />
-              Getting Started Guide
-            </Badge>
-            <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 lg:mb-6">
-              Step-by-Step <span className="gradient-text">User Guidance</span>
-            </h2>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
-              Follow these role-specific steps to maximize your platform experience
+    <Link href="/auth">
+      <Button
+        size="lg"
+        variant="secondary"
+        className="bg-white text-primary dark:text-red-600 hover:bg-white/90 dark:hover:bg-[#E2142D]/10 px-8 py-6 text-lg font-semibold shadow-xl transition-all duration-300"
+      >
+        Get Started Today
+        <ArrowRight className="ml-2 h-5 w-5" />
+      </Button>
+    </Link>
+  </div>
+</section>
+
+        <Separator className="my-12" />
+       <section className="w-full py-20">
+  <div className="w-full px-4">
+    <div className="text-center mb-16">
+      <Badge
+        variant="outline"
+        className="mb-4 border-[#a21caf] text-[#a21caf] bg-white/80 dark:bg-black/80 font-semibold"
+      >
+        <Globe className="h-4 w-4 mr-2" />
+        Core Services
+      </Badge>
+      <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-extrabold mb-6">
+        Everything You Need for{" "}
+        <span className="bg-gradient-to-r from-[#E2142D] via-[#2563eb] to-[#a21caf] bg-clip-text text-transparent animate-gradient-text">
+          Sustainable Success
+        </span>
+      </h2>
+      <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+        Our comprehensive suite of services covers every aspect of sustainable procurement, from initial
+        assessment to ongoing optimization.
+      </p>
+    </div>
+
+    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 w-full">
+      {services.map((service, index) => {
+        const Icon = service.icon;
+        return (
+          <Card
+            key={index}
+            className="w-full group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-0 bg-gradient-to-br from-[#E2142D]/5 via-[#2563eb]/10 to-[#a21caf]/10 backdrop-blur-sm animate-fade-in"
+          >
+            <CardHeader>
+              <div
+                className={`w-12 h-12 rounded-lg ${service.bgColor} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
+              >
+                <Icon className={`h-6 w-6 ${service.color}`} />
+              </div>
+              <CardTitle className="text-xl font-heading">{service.title}</CardTitle>
+              <CardDescription className="text-base">{service.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                {service.features.map((feature, i) => (
+                  <li key={i} className="flex items-center space-x-2 text-base">
+                    <CheckCircle className="h-4 w-4 text-[#E2142D]" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  </div>
+</section>
+
+
+        {/* Detailed Service Tabs */}
+       <section className="w-full py-20">
+  <div className="w-full px-4">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <div className="text-center mb-12">
+        <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-extrabold mb-6">
+          Explore Our{" "}
+          <span className="bg-gradient-to-r from-[#E2142D] via-[#2563eb] to-[#a21caf] bg-clip-text text-transparent animate-gradient-text">
+            Service Details
+          </span>
+        </h2>
+        <TabsList className="grid w-full grid-cols-4 gap-2 bg-[#ffffff]/70 dark:bg-[#0f0f0f]/70  rounded-lg shadow-md">
+          <TabsTrigger value="overview" className="font-semibold text-[#E2142D] dark:hover:bg-[#E2142D]/10 transition-all duration-300">Overview</TabsTrigger>
+          <TabsTrigger value="features" className="font-semibold text-[#2563eb] dark:hover:bg-[#2563eb]/10 transition-all duration-300">Features</TabsTrigger>
+          <TabsTrigger value="benefits" className="font-semibold text-[#a21caf] dark:hover:bg-[#a21caf]/10 transition-all duration-300">Benefits</TabsTrigger>
+          <TabsTrigger value="pricing" className="font-semibold text-[#E2142D] dark:hover:bg-[#E2142D]/10 transition-all duration-300">Pricing</TabsTrigger>
+        </TabsList>
+      </div>
+
+             <TabsContent value="overview" className="space-y-8 w-full">
+        <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
+          <div className="space-y-6">
+            <h3 className="font-heading text-2xl font-extrabold">Comprehensive Platform Overview</h3>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Our platform combines cutting-edge AI technology with deep sustainability expertise to deliver
+              unparalleled insights into your supply chain performance.
             </p>
-          </div>
-
-          <div className="max-w-4xl mx-auto">
-            <Card className="border-0 bg-gradient-to-br from-primary/5 to-blue-500/5">
-              <CardHeader>
-                <CardTitle className="text-xl lg:text-2xl flex items-center">
-                  <User className="h-5 w-5 lg:h-6 lg:w-6 mr-3 text-primary" />
-                  Your Role: {userRole || "Not Set"}
-                </CardTitle>
-                <CardDescription>Customized guidance based on your role and responsibilities</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {getUserSteps().map((step, index) => (
-                    <div key={index} className="flex items-start space-x-4 p-3 lg:p-4 rounded-lg bg-background/50">
-                      <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs lg:text-sm flex-shrink-0">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <p className="text-sm lg:text-base leading-relaxed">{step}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {userRole !== "Supplier" && (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-              {adminSteps.map((admin, index) => (
-                <Card
-                  key={index}
-                  className={`border-0 transition-all duration-300 ${
-                    admin.role === userRole ? "bg-primary/10 border-primary" : "bg-muted/50"
-                  }`}
-                >
-                  <CardHeader>
-                    <CardTitle className="text-base lg:text-lg">{admin.role}</CardTitle>
-                    <CardDescription className="text-sm">
-                      {admin.role === userRole ? "Your current role" : "Other admin role"}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {admin.steps.map((step, stepIndex) => (
-                        <div key={stepIndex} className="flex items-start space-x-2">
-                          <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-primary" />
-                          </div>
-                          <p className="text-xs lg:text-sm leading-relaxed">{step}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="h-5 w-5 text-[#E2142D]" />
+                <span className="text-base">Real-time ESG monitoring and analysis</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="h-5 w-5 text-[#2563eb]" />
+                <span className="text-base">Cost Efficiency & Reliability Evaluation</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="h-5 w-5 text-[#a21caf]" />
+                <span className="text-base">Automated risk assessment and alerts</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="h-5 w-5 text-[#E2142D]" />
+                <span className="text-base">Customizable reporting and dashboards</span>
+              </div>
             </div>
-          )}
-        </section> */}
-
-        {/* <Separator className="my-8 lg:my-16" /> */}
-
-        {/* Dashboard Section */}
-        {userRole !== "Supplier" && userPersona && (
-          <section className="space-y-8 lg:space-y-12">
-            <div className="text-center space-y-4">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-heading bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                {userPersona.title} Dashboard
-              </h2>
-              <p className="text-lg sm:text-xl text-muted-foreground px-4">
-                Your personalized KPIs and performance insights
-              </p>
-            </div>
+          </div>
 
           <Card className="w-full border-0 bg-gradient-to-br from-[#E2142D]/5 via-[#2563eb]/10 to-[#a21caf]/10 shadow-lg backdrop-blur-sm animate-fade-in">
             <CardContent className="p-8">
