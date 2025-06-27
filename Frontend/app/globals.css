@@ -3,32 +3,51 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 142 76% 36%;
-    --primary-foreground: 355 7% 97%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 142 76% 36%;
-    --radius: 0.75rem;
-    --chart-1: 142 76% 36%;
-    --chart-2: 346 77% 49%;
-    --chart-3: 262 83% 58%;
-    --chart-4: 47 96% 53%;
-    --chart-5: 196 75% 46%;
+ :root {
+    /* Base Colors */
+    --background: 0 0% 100%;      /* White */
+    --foreground: 0 0% 0%;        /* Black */
+
+    /* Card & Popover */
+    --card: 0 0% 100%;            /* White */
+    --card-foreground: 0 0% 0%;   /* Black */
+    --popover: 0 0% 100%;         /* White */
+    --popover-foreground: 0 0% 0%;/* Black */
+
+    /* Primary (Red) */
+    --primary: 0 84% 60%;         /* Red-500 */
+    --primary-foreground: 0 0% 100%; /* White (for text on red) */
+
+    /* Secondary (Gray) */
+    --secondary: 210 20% 98%;     /* Gray-50 */
+    --secondary-foreground: 0 0% 0%; /* Black */
+
+    /* Muted (Gray) */
+    --muted: 220 14% 96%;         /* Gray-100 */
+    --muted-foreground: 220 9% 46%; /* Gray-500 */
+
+    /* Accent (Gray) */
+    --accent: 220 14% 96%;        /* Gray-100 */
+    --accent-foreground: 0 0% 0%; /* Black */
+
+    /* Destructive (Red) */
+    --destructive: 0 84% 60%;     /* Same as primary (Red) */
+    --destructive-foreground: 0 0% 100%; /* White */
+
+    /* Borders & Inputs (Gray) */
+    --border: 220 13% 91%;        /* Gray-200 */
+    --input: 220 13% 91%;         /* Gray-200 */
+    --ring: 0 84% 60%;            /* Red (focus ring) */
+
+    /* Radius */
+    --radius: 0.75rem;            /* Keep your rounded corners */
+
+    /* Chart Colors (Optional) */
+    --chart-1: 0 84% 60%;         /* Red */
+    --chart-2: 346 77% 49%;       /* Pink */
+    --chart-3: 262 83% 58%;       /* Purple */
+    --chart-4: 47 96% 53%;        /* Yellow */
+    --chart-5: 196 75% 46%;       /* Blue */
   }
 
   .dark {

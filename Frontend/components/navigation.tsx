@@ -88,25 +88,28 @@ export function Navigation() {
   }
 
   return (
-    <nav
-      className={cn(
-  "fixed top-0 z-50 w-full transition-all duration-300 border-b",
-        isScrolled 
-          ? "bg-background/95 backdrop-blur-md shadow-sm"
-          : "bg-background/80 backdrop-blur-md"
-      )}
-    >
+   <nav
+  className={cn(
+    "fixed top-0 z-50 w-full transition-all duration-300 border-b",
+    isScrolled
+      ? "bg-background/95 backdrop-blur-md shadow-sm dark:bg-[#0f0f0f]/80"
+      : "bg-background/80 backdrop-blur-md dark:bg-gradient-to-r dark:from-[#0f0f0f]/90 dark:to-[#1a1a1a]/90"
+  )}
+>
+
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 group">
             <div className="relative">
-              <Leaf className="h-8 w-8 text-primary transition-transform group-hover:scale-110" />
+            <Leaf className="h-8 w-8 text-[#E2142D] transition-transform group-hover:scale-110" />
+
               <div className="absolute inset-0 h-8 w-8 bg-primary/20 rounded-full blur-xl group-hover:bg-primary/30 transition-all" />
             </div>
-            <span className="font-heading font-bold text-xl bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-              SustainPro
-            </span>
+<span className="font-heading font-bold text-xl bg-gradient-to-r from-[#E2142D] via-[#2563eb] to-[#a21caf] bg-clip-text text-transparent">
+  SustainPro
+</span>
+
           </Link>
 
           {/* Desktop Navigation */}
@@ -117,7 +120,10 @@ export function Navigation() {
                 href={item.href}
                 className={cn(
                   "relative text-sm font-medium transition-all duration-200 hover:text-primary",
-                  pathname === item.href ? "text-primary font-semibold" : "text-foreground/90 hover:text-foreground",
+                  pathname === item.href
+  ? "text-[#E2142D] font-semibold dark:text-[#E2142D]"
+  : "text-foreground/90 hover:text-foreground dark:hover:text-[#a21caf]"
+,
                 )}
               >
                 {item.name}
@@ -137,7 +143,8 @@ export function Navigation() {
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-10 w-10">
                       <AvatarFallback className="  bg-primary/10 text-primary font-semibold
-              dark:bg-white/10 dark:text-white">
+              dark:bg-[#a21caf]/10 dark:text-[#a21caf]
+">
                         {userData?.email?.charAt(0)?.toUpperCase() ?? ""}
                       </AvatarFallback>
                     </Avatar>
@@ -159,9 +166,10 @@ export function Navigation() {
               </Popover>
             ) : (
               <Link href="/auth">
-                <Button className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 flex items-center transition-all duration-300 hover:scale-105 px-6 py-2 text-lg shadow-lg">
-                  Get Started
-                </Button>
+                <Button className="px-6 h-11  bg-gradient-to-r from-[#E2142D] to-[#2563eb] hover:from-[#E2142D]/90 hover:to-[#2563eb]/80 transition-all duration-300 hover:shadow-xl font-bold text-white text-sm tracking-wide shadow-lg">
+          Get Started
+        
+        </Button>
               </Link>
             )}
 
@@ -191,7 +199,9 @@ function MobileNav({ onLogout }: { userData: any; onLogout: () => void }) {
     <div className="flex flex-col space-y-6 mt-8">
       <Link href="/" className="flex items-center space-x-2">
         <Leaf className="h-6 w-6 text-primary" />
-        <span className="font-heading font-bold text-lg gradient-text">SustainPro</span>
+        <span className="font-heading font-bold text-lg bg-gradient-to-r from-[#E2142D] via-[#2563eb] to-[#a21caf] bg-clip-text text-transparent">
+  SustainPro
+</span>
       </Link>
 
       {userData && (
@@ -222,7 +232,7 @@ function MobileNav({ onLogout }: { userData: any; onLogout: () => void }) {
               className={cn(
                 "flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
                 pathname === item.href
-                  ? "bg-primary/10 text-primary"
+                  ? "bg-[#E2142D]/10 text-[#E2142D] dark:text-[#E2142D]"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
               )}
             >
@@ -234,7 +244,7 @@ function MobileNav({ onLogout }: { userData: any; onLogout: () => void }) {
       </div>
 
       {userData && (
-        <Button onClick={onLogout} variant="outline" className="w-full justify-start">
+        <Button onClick={onLogout} className="w-full justify-start bg-white text-[#E2142D] dark:bg-[#E2142D]/10 dark:text-[#E2142D] hover:opacity-90">
           <LogOut className="mr-2 h-4 w-4" />
           Logout
         </Button>

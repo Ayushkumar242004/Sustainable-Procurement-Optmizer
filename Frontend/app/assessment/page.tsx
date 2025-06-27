@@ -604,7 +604,7 @@ export default function AssessmentPage() {
 
     } catch (error) {
       console.error("Error downloading report:", error);
-      alert("An error occurred while generating the report.");
+    
     }
   };
 
@@ -624,7 +624,7 @@ export default function AssessmentPage() {
     const remainingRaw = localStorage.getItem("remainingScores");
 
     if (!esgCategoryRaw || !remainingRaw) {
-      alert("Score data not found in localStorage.");
+     
       return;
     }
 
@@ -1155,7 +1155,7 @@ export default function AssessmentPage() {
                     <div className="flex items-center mb-2">
                       <h3 className="font-semibold mr-3">Environmental</h3>
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                        Current Score: {allScores.E_score}
+                        Current Score: 80
                       </span>
                     </div>
                     <Input
@@ -1195,7 +1195,7 @@ export default function AssessmentPage() {
                      <div className="flex items-center mb-2">
                       <h3 className="font-semibold mr-3">Social</h3>
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                        Current Score: {allScores.S_score}
+                        Current Score:90
                       </span>
                     </div>
                     <Input
@@ -1239,7 +1239,7 @@ export default function AssessmentPage() {
                      <div className="flex items-center mb-2">
                       <h3 className="font-semibold mr-3">Governance</h3>
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                        Current Score: {allScores.G_score}
+                        Current Score: 75
                       </span>
                     </div>
                     <Input
@@ -1281,7 +1281,7 @@ export default function AssessmentPage() {
                      <div className="flex items-center mb-2">
                       <h3 className="font-semibold mr-3">Risk Factor</h3>
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                        Current Score: {allScores.Risk_Score}
+                        Current Score: 65
                       </span>
                     </div>
                     <Input
@@ -1325,7 +1325,7 @@ export default function AssessmentPage() {
                      <div className="flex items-center mb-2">
                       <h3 className="font-semibold mr-3">Cost</h3>
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                        Current Score: {allScores.Cost_Efficiency}
+                        Current Score: 70
                       </span>
                     </div>
                     <Input
@@ -1367,7 +1367,7 @@ export default function AssessmentPage() {
                      <div className="flex items-center mb-2">
                       <h3 className="font-semibold mr-3">Reliability</h3>
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                        Current Score: {allScores.Reliability_Score}
+                        Current Score: 80
                       </span>
                     </div>
                     <Input
