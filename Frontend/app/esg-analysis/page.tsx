@@ -275,6 +275,9 @@ const fetchRecommendations = async (supplier_name: string) => {
       setRecommendations(["Supplier data not available"]);
       return;
     }
+    localStorage.setItem("remainingScores", JSON.stringify([
+  "Cost Efficiency: 88\nRisk Score: 12\nReliability Score: 95"
+]));
 
 
     const esgScores = supplier?.esg_subfactor_scores || 

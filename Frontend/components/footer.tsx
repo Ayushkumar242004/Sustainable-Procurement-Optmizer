@@ -27,10 +27,10 @@ const navigation = {
 
 export function Footer() {
   return (
-    <footer className="relative bg-gradient-to-br from-muted/50 to-muted border-t">
-      <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-      <div className="relative container mx-auto px-4 py-16">
-        <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-8">
+  <footer className="relative bg-gradient-to-b from-[#0B120F] via-[#0f1f1f] to-[#09090B] text-white border-t">
+    <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+      <div className="relative container mx-auto px-6 pt-12 pb-4">
+        <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-12">
           {/* Brand Section */}
           <div className="space-y-6">
             <Link href="/" className="flex items-center space-x-2 group">
@@ -122,7 +122,7 @@ export function Footer() {
         </div>
 
         {/* Bottom Section */}
-        <div className="mt-12 pt-8 border-t border-border">
+        <div className="mt-12 pt-4 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 text-sm text-muted-foreground">
               <p>&copy; 2024 SustainPro. All rights reserved.</p>
