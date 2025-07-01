@@ -37,7 +37,7 @@ export function Chatbot() {
     {
       id: "1",
       content:
-        "Hi! I'm your ESG assistant. I'm here to help you with sustainability questions, data submission guidance, and ESG best practices. How can I assist you today?",
+        "Hi! I'm your assistant. I'm here to help you with sustainability questions, data submission guidance, and best practices. How can I assist you today?",
       sender: "bot",
       timestamp: new Date(),
     },
@@ -147,7 +147,7 @@ export function Chatbot() {
                 role: "user",
                 parts: [
                   {
-                    text: "You are an ESG assistant named Sustain Pro. Provide helpful, factual, and concise answers related to ESG, sustainability, and reporting. Give the answer in 2-3 lines only for general questions. Give the response in no styling (non-bold, non-italic) format.",
+                    text: "You are an website assistant named ProcurePro. Provide helpful, factual, and concise answers related to ESG, sustainability, and reporting. Give the answer in 2-3 lines only for general questions. Give the response in no styling (non-bold, non-italic) format.",
                   },
                 ],
               },
@@ -281,172 +281,169 @@ export function Chatbot() {
 
       {/* Chatbot Window */}
       {isOpen && (
-        <div
-          className={cn(
-            "fixed bottom-24 right-6 z-50 w-96 transition-all duration-300",
-            isMinimized ? "h-16" : "h-[500px]",
-          )}
-        >
-          <Card
-            className={cn(
-              "h-full shadow-xl border border-gray-200 dark:border-gray-700",
-              "bg-white dark:bg-gray-800 transition-all duration-300",
-              "flex flex-col overflow-hidden",
-            )}
-          >
-            <CardHeader
-              className={cn(
-                "pb-3 bg-gradient-to-r from-green-600 to-teal-500 text-white",
-                "rounded-t-lg cursor-pointer transition-all duration-200",
-                "hover:from-green-700 hover:to-teal-600",
-              )}
-              onClick={() => setIsMinimized(!isMinimized)}
-            >
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Bot className="h-6 w-6" />
-                  <span className="font-semibold">ESG Assistant</span>
-                </div>
-                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  AI Powered
-                </Badge>
-              </CardTitle>
-            </CardHeader>
+  <div
+    className={cn(
+      "fixed bottom-24 right-6 z-50 w-96 transition-all duration-300",
+      isMinimized ? "h-16" : "h-[500px]",
+    )}
+  >
+    <Card
+      className={cn(
+        "h-full shadow-xl border border-gray-200 dark:border-gray-700",
+        "bg-white dark:bg-gray-800 transition-all duration-300",
+        "flex flex-col overflow-hidden",
+      )}
+    >
+      <CardHeader
+      className={cn(
+  "pb-3 bg-gradient-to-r from-[#E3152D] to-[#a21caf] text-white",
+  "rounded-t-lg cursor-pointer transition-all duration-200",
+ 
+)}
+        onClick={() => setIsMinimized(!isMinimized)}
+      >
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Bot className="h-6 w-6" />
+            <span className="font-semibold">Assistant</span>
+          </div>
+          <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+            <Sparkles className="h-3 w-3 mr-1" />
+            AI Powered
+          </Badge>
+        </CardTitle>
+      </CardHeader>
 
-            {!isMinimized && (
-              <CardContent className="p-0 h-full flex flex-col">
-                {/* Messages Area */}
-                <ScrollArea ref={scrollAreaRef} className="flex-1 p-4 space-y-4 bg-gray-50 dark:bg-gray-900/50">
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={cn(
-                        "flex items-start space-x-2",
-                        "transition-all duration-200 ease-out",
-                        message.sender === "user" ? "justify-end" : "justify-start",
-                        "animate-fade-in-up",
-                      )}
-                    >
-                      {message.sender === "bot" && (
-                        <Avatar className="h-8 w-8 bg-green-100 dark:bg-green-900/50">
-                          <AvatarFallback className="bg-green-500 text-white">
-                            <Bot className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
+      {!isMinimized && (
+        <CardContent className="p-0 h-full flex flex-col">
+          {/* Messages Area */}
+          <ScrollArea ref={scrollAreaRef} className="flex-1 p-4 space-y-4 bg-gray-50 dark:bg-gray-900/50">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={cn(
+                  "flex items-start space-x-2",
+                  "transition-all duration-200 ease-out",
+                  message.sender === "user" ? "justify-end" : "justify-start",
+                  "animate-fade-in-up",
+                )}
+              >
+                {message.sender === "bot" && (
+                  <Avatar className="h-8 w-8 bg-sky-100 dark:bg-blue-900/50">
+                    <AvatarFallback className="bg-[#E3152D] text-white">
+                      <Bot className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                )}
 
-                      <div
-                        className={cn(
-                          "max-w-[80%] rounded-lg px-3 py-2 text-sm",
-                          "transition-all duration-200 hover:shadow-sm",
-                          message.sender === "user" ? "bg-green-600 text-white" : "bg-gray-100 dark:bg-gray-700",
-                          "animate-pop-in",
-                        )}
-                      >
-                        <p>{message.content}</p>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-xs opacity-70">
-                            {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                          </span>
-                          {message.sender === "bot" && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-4 w-4 p-0 ml-2 opacity-70 hover:opacity-100"
-                              onClick={() => (isSpeaking ? stopSpeaking() : speakMessage(message.content))}
-                            >
-                              {isSpeaking ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-
-                      {message.sender === "user" && (
-                        <Avatar className="h-8 w-8 bg-blue-100 dark:bg-blue-900/50">
-                          <AvatarFallback className="bg-blue-500 text-white">
-                            <User className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-                    </div>
-                  ))}
-
-                  {/* Typing Indicator */}
-                  {isTyping && (
-                    <div className="flex items-start space-x-2 animate-fade-in">
-                      <Avatar className="h-8 w-8 bg-green-100 dark:bg-green-900/50">
-                        <AvatarFallback className="bg-green-500 text-white">
-                          <Bot className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2">
-                        <div className="flex space-x-1">
-                          <div className="h-2 w-2 bg-green-500 rounded-full animate-bounce" />
-                          <div
-                            className="h-2 w-2 bg-green-500 rounded-full animate-bounce"
-                            style={{ animationDelay: "0.2s" }}
-                          />
-                          <div
-                            className="h-2 w-2 bg-green-500 rounded-full animate-bounce"
-                            style={{ animationDelay: "0.4s" }}
-                          />
-                        </div>
-                      </div>
-                    </div>
+                <div
+                  className={cn(
+                    "max-w-[80%] rounded-lg px-3 py-2 text-sm",
+                    "transition-all duration-200 hover:shadow-sm",
+                    message.sender === "user"
+                      ? "bg-[#E3152D] text-white"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white",
+                    "animate-pop-in",
                   )}
-                </ScrollArea>
-
-                {/* Input Area */}
-                <div className="p-4 border-t bg-white dark:bg-gray-800">
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1 relative">
-                      <Input
-                        ref={inputRef}
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Ask me about ESG, sustainability, or data submission..."
-                        className="pr-12 focus-visible:ring-green-500"
-                      />
+                >
+                  <p>{message.content}</p>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-xs opacity-70">
+                      {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                    {message.sender === "bot" && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        className={cn(
-                          "absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0",
-                          isListening && "text-red-500 animate-pulse",
-                        )}
-                        onClick={toggleVoiceInput}
+                        className="h-4 w-4 p-0 ml-2 opacity-70 hover:opacity-100"
+                        onClick={() => (isSpeaking ? stopSpeaking() : speakMessage(message.content))}
                       >
-                        {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                        {isSpeaking ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
                       </Button>
-                    </div>
-                    <Button
-                      onClick={sendMessage}
-                      disabled={!inputValue.trim()}
-                      className={cn(
-                        "h-10 w-10 p-0 bg-green-600 hover:bg-green-700",
-                        "transition-transform duration-150 active:scale-95",
-                      )}
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
+                    )}
                   </div>
-
-                  {isListening && (
-                    <div className="mt-2 text-center">
-                      <Badge variant="outline" className="animate-pulse">
-                        <Mic className="h-3 w-3 mr-1" />
-                        Listening...
-                      </Badge>
-                    </div>
-                  )}
                 </div>
-              </CardContent>
+
+                {message.sender === "user" && (
+                  <Avatar className="h-8 w-8 bg-blue-100 dark:bg-blue-900/50">
+                    <AvatarFallback className="bg-[#E3152D] text-white">
+                      <User className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+              </div>
+            ))}
+
+            {/* Typing Indicator */}
+            {isTyping && (
+              <div className="flex items-start space-x-2 animate-fade-in">
+                <Avatar className="h-8 w-8 bg-sky-100 dark:bg-blue-900/50">
+                  <AvatarFallback className="bg-[#E3152D] text-white">
+                    <Bot className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2">
+                  <div className="flex space-x-1">
+                    <div className="h-2 w-2 bg-blue-400 rounded-full animate-bounce" />
+                    <div className="h-2 w-2 bg-blue-400 rounded-full animate-bounce delay-200" />
+                    <div className="h-2 w-2 bg-blue-400 rounded-full animate-bounce delay-400" />
+                  </div>
+                </div>
+              </div>
             )}
-          </Card>
-        </div>
+          </ScrollArea>
+
+          {/* Input Area */}
+          <div className="p-4 border-t bg-white dark:bg-gray-800">
+            <div className="flex items-center space-x-2">
+              <div className="flex-1 relative">
+                <Input
+                  ref={inputRef}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask me about ESG, sustainability, or data submission..."
+                  className="pr-12 focus-visible:ring-red-500"
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0",
+                    isListening && "text-red-500 animate-pulse",
+                  )}
+                  onClick={toggleVoiceInput}
+                >
+                  {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                </Button>
+              </div>
+              <Button
+                onClick={sendMessage}
+                disabled={!inputValue.trim()}
+                className={cn(
+                  "h-10 w-10 p-0 bg-[#E3152D]",
+                  "transition-transform duration-150 active:scale-95",
+                )}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {isListening && (
+              <div className="mt-2 text-center">
+                <Badge variant="outline" className="animate-pulse text-[#E3152D] border-red-300">
+                  <Mic className="h-3 w-3 mr-1" />
+                  Listening...
+                </Badge>
+              </div>
+            )}
+          </div>
+        </CardContent>
       )}
+    </Card>
+  </div>
+)}
+
     </>
   )
 }

@@ -154,10 +154,13 @@ export default function SupplierDirectory() {
     <div className="container mx-auto p-6 space-y-8">
       <div className="h-10" /> 
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-          Supplier Directory
-        </h1>
-        <p className="text-xl text-muted-foreground">Browse and manage your supplier network</p>
+        <h2 className="text-3xl sm:text-4xl font-extrabold mb-2 font-['Inter','IBM Plex Sans',sans-serif]">
+         
+          <span className="bg-gradient-to-r from-[#E2142D] via-[#2563eb] to-[#a21caf] bg-clip-text text-transparent animate-gradient-text">
+            Supplier Directory
+          </span>
+        </h2>
+        <p className="text-md text-muted-foreground">Browse and manage your supplier network</p>
       </div>
 
       {/* Filters */}

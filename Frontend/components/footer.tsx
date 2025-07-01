@@ -27,8 +27,8 @@ const navigation = {
 
 export function Footer() {
   return (
-  <footer className="relative bg-gradient-to-b from-[#0B120F] via-[#0f1f1f] to-[#09090B] text-white border-t">
-    <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+    <footer className="relative bg-white text-gray-800 dark:bg-gradient-to-b dark:from-[#0B120F] dark:via-[#0f1f1f] dark:to-[#09090B] dark:text-white border-t transition-colors duration-500">
+      <div className="absolute inset-0 bg-grid-pattern opacity-5 dark:opacity-5" />
       <div className="relative container mx-auto px-6 pt-12 pb-4">
         <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-12">
           {/* Brand Section */}
@@ -38,7 +38,7 @@ export function Footer() {
                 <Leaf className="h-8 w-8 text-primary transition-transform group-hover:scale-110" />
                 <div className="absolute inset-0 h-8 w-8 bg-primary/20 rounded-full blur-xl group-hover:bg-primary/30 transition-all" />
               </div>
-              <span className="font-heading font-bold text-xl gradient-text">SustainPro</span>
+              <span className="font-heading font-bold text-xl gradient-text">ProcurePro</span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed">
               Transforming supply chains through sustainable procurement practices. Empowering businesses to make
@@ -97,7 +97,7 @@ export function Footer() {
             <div className="space-y-4">
               <div className="flex items-center space-x-3 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4 text-primary" />
-                <span>hello@sustainpro.com</span>
+                <span>hello@procurepro.com</span>
               </div>
               <div className="flex items-center space-x-3 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4 text-primary" />
@@ -125,7 +125,7 @@ export function Footer() {
         <div className="mt-12 pt-4 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 text-sm text-muted-foreground">
-              <p>&copy; 2024 SustainPro. All rights reserved.</p>
+              <p>&copy; 2025 ProcurePro. All rights reserved.</p>
               <div className="flex space-x-4">
                 {navigation.legal.map((item) => (
                   <Link key={item.name} href={item.href} className="hover:text-primary transition-colors duration-200">

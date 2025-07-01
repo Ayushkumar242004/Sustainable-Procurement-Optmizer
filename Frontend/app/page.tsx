@@ -488,11 +488,11 @@ export default function Dashboard() {
   <div className="w-full max-w-4xl mx-auto text-center space-y-6 relative z-10">
     <Badge className="px-4 py-1.5 border-[#2563eb] text-[#2563eb] bg-white/80 dark:bg-black/80 font-semibold tracking-wide shadow-md">
       <Globe className="h-3 w-3 mr-2" />
-      Transforming Sustainable Procurement
+Transforming Resilient Procurement
     </Badge>
 
     <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight md:leading-tight font-['Inter','IBM Plex Sans',sans-serif]">
-      <span className="bg-gradient-to-r from-[#E2142D] to-[#E2142D] bg-clip-text text-transparent animate-gradient-text">
+      <span className="bg-gradient-to-r from-[#E2142D] via-[#2563eb] to-[#a21caf] bg-clip-text text-transparent animate-gradient-text">
         ProcurePro:
       </span>{" "}
       Smarter Procurement. Greater Impact.
@@ -505,7 +505,7 @@ export default function Dashboard() {
     </div>
 
     <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-      Empowering smarter, sustainable procurement with AI-driven ESG insights.
+      Empowering smarter, resilient procurement with AI-driven ESG insights.
     </p>
 
     <div className="flex justify-center gap-4 pt-4">

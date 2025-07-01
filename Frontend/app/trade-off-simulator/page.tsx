@@ -310,10 +310,16 @@ useEffect(() => {
     <div className="relative pt-20 min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto p-6 space-y-8">
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+          <h2 className="text-3xl sm:text-4xl font-extrabold mb-2 font-['Inter','IBM Plex Sans',sans-serif]">
+         
+          <span className="bg-gradient-to-r from-[#E2142D] via-[#2563eb] to-[#a21caf] bg-clip-text text-transparent animate-gradient-text">
             Trade-Off Simulator
+          </span>
+        </h2>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+           
           </h1>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-md text-muted-foreground">
             Adjust weights to see how supplier rankings change in real-time with AI-powered insights
           </p>
         </div>

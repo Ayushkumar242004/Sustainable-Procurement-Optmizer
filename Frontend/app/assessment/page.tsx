@@ -669,10 +669,10 @@ export default function AssessmentPage() {
         {/* Header */}
         <div className="text-center">
           <h1 className="text-4xl font-bold font-heading mb-4">
-            Analysis & <span className="gradient-text">Reporting Center</span>
+            Analytics & <span className="gradient-text">Reporting Center</span>
           </h1>
           <p className="text-xl text-muted-foreground">
-            Comprehensive ESG evaluation with real-time validation, benchmarking, and automated reporting
+            Comprehensive score evaluation with real-time validation, benchmarking, and automated reporting
           </p>
         </div>
 
