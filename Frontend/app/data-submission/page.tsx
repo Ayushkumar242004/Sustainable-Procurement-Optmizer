@@ -66,6 +66,7 @@ export default function DataSubmissionPage() {
   const [numberDisclosedTaxJurisdictions, setNumberDisclosedTaxJurisdictions] = useState("");
   const [totalNumberOperatingJurisdictions, setTotalNumberOperatingJurisdictions] = useState("");
 
+  
   // function to update value 
   const updateFormFields = (parsed: any) => {
     setCompanyName(parsed.company_name || "");
@@ -337,10 +338,10 @@ export default function DataSubmissionPage() {
         {/* Header */}
         <div className="text-center mb-8 animate-fade-in">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-heading mb-4">
-            ESG Data <span className="gradient-text">Submission Portal</span>
+            Data <span className="gradient-text">Submission Portal</span>
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground px-4">
-            Submit your sustainability metrics for comprehensive ESG scoring
+            Submit your metrics for comprehensive scoring
           </p>
         </div>
 
@@ -944,12 +945,12 @@ export default function DataSubmissionPage() {
                     <div className="space-y-6">
                       {/* ESG Document Upload */}
                       <div className="space-y-4">
-                        <Label>ESG Report Document</Label>
+                        <Label> Report Document</Label>
                         <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center transition-all duration-300 hover:border-primary/50 hover:bg-primary/5">
                           <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground animate-float" />
-                          <p className="text-lg font-medium mb-2">Upload ESG Report</p>
+                          <p className="text-lg font-medium mb-2">Upload Reports</p>
                           <p className="text-sm text-muted-foreground mb-4">
-                            Upload your comprehensive ESG report (PDF, Word, Excel)
+                            Upload your comprehensive reports (PDF, Word, Excel)
                           </p>
 
                           {/* Hidden File Input */}

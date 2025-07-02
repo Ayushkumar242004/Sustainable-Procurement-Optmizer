@@ -125,15 +125,7 @@ export function Navigation() {
         </PopoverTrigger>
         <PopoverContent className="w-56 p-0" align="start">
           <div className="flex flex-col">
-            <Link
-              href="/esg-analysis"
-              className={cn(
-                "px-4 py-2 hover:bg-accent text-sm",
-                pathname === "/esg-analysis" && "bg-accent font-semibold"
-              )}
-            >
-              ESG Analysis
-            </Link>
+           
             <Link
               href="/"
               className="px-4 py-2 hover:bg-accent text-sm"
@@ -151,6 +143,15 @@ export function Navigation() {
               className="px-4 py-2 hover:bg-accent text-sm"
             >
               Reliability Analysis
+            </Link>
+             <Link
+              href="/esg-analysis"
+              className={cn(
+                "px-4 py-2 hover:bg-accent text-sm",
+                pathname === "/esg-analysis" && "bg-accent font-semibold"
+              )}
+            >
+              ESG Analysis
             </Link>
           </div>
         </PopoverContent>
