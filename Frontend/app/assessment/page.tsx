@@ -65,10 +65,10 @@ const scoringWeights = [
 ]
 
 const benchmarkData = [
-  { category: "Environmental", yourScore: 75.24, industryAvg: 52.00 },
-  { category: "Social", yourScore: 72.56, industryAvg: 57.00 },
-  { category: "Governance", yourScore: 85.00, industryAvg: 69.00 },
-  { category: "Overall", yourScore: 76.74, industryAvg: 59.33 },
+  { category: "Cost Efficiency", yourScore: 75.24, industryAvg: 52.00 },
+  { category: "Risk Assessment", yourScore: 72.56, industryAvg: 57.00 },
+  { category: "Reliability ", yourScore: 85.00, industryAvg: 69.00 },
+  { category: "ESG", yourScore: 76.74, industryAvg: 59.33 },
 ]
 
 const riskHeatmapData = [
@@ -91,7 +91,7 @@ const radarData = [
 
 // Reports Data
 const reportTemplates = [
-  { id: 1, name: "ESG Performance Report", type: "Monthly", lastGenerated: "2024-01-15", status: "Ready" },
+  { id: 1, name: "Performance Report", type: "Monthly", lastGenerated: "2024-01-15", status: "Ready" },
 
 ]
 
@@ -563,11 +563,10 @@ export default function AssessmentPage() {
       const esg_category_scores = JSON.parse(categoryScoresRaw);
       const esg_final_subfactor_scores = JSON.parse(subfactorScoresRaw);
       const recommendations = recommendationsRaw ? JSON.parse(recommendationsRaw) : [];
-      const cost_score = allScores.Cost_Efficiency;
-      const risk_score = allScores.Risk_Score;
-      const reliability_score = allScores.Reliability_Score;
-      console.log("rem Scores:", cost_score, risk_score, reliability_score);
-      // 2. Prepare payload
+      const cost_score = 65;
+      const risk_score = 55;
+      const reliability_score = 70;
+    
       const payload = {
         company_name,
         esg_category_scores,
@@ -621,29 +620,24 @@ export default function AssessmentPage() {
 
   const handleShowOverallScore = async () => {
     const esgCategoryRaw = localStorage.getItem("esg_category_scores");
-    const remainingRaw = localStorage.getItem("remainingScores");
-
-    if (!esgCategoryRaw || !remainingRaw) {
+    
+    if (!esgCategoryRaw ) {
      
       return;
     }
 
     try {
       const parsedESG = JSON.parse(esgCategoryRaw);
-      const parsedRemaining = JSON.parse(remainingRaw);
-
+      
       const { E_score, S_score, G_score, ESG_score } = parsedESG;
 
-      const scoreText = parsedRemaining[0]; // "Cost Efficiency: 88\nRisk Score: 12\nReliability Score: 95"
-      const scoreLines = scoreText.split("\n");
+     
+    const remainingScores: any = {
+  Cost_Efficiency: 50,
+  Risk_Score: 65,
+  Reliability_Score: 70
+};
 
-      const remainingScores: any = {};
-      scoreLines.forEach((line: string) => {
-        const [key, value] = line.split(":").map(s => s.trim());
-        if (key === "Cost Efficiency") remainingScores.Cost_Efficiency = parseFloat(value);
-        else if (key === "Risk Score") remainingScores.Risk_Score = parseFloat(value);
-        else if (key === "Reliability Score") remainingScores.Reliability_Score = parseFloat(value);
-      });
 
       setAllScores({
         E_score,
@@ -669,10 +663,10 @@ export default function AssessmentPage() {
         {/* Header */}
         <div className="text-center">
           <h1 className="text-4xl font-bold font-heading mb-4">
-            Analysis & <span className="gradient-text">Reporting Center</span>
+            Analytics & <span className="gradient-text">Reporting Center</span>
           </h1>
           <p className="text-xl text-muted-foreground">
-            Comprehensive ESG evaluation with real-time validation, benchmarking, and automated reporting
+            Comprehensive score evaluation with real-time validation, benchmarking, and automated reporting
           </p>
         </div>
 
@@ -729,7 +723,7 @@ export default function AssessmentPage() {
                   <Target className="h-6 w-6 mr-3 text-primary" />
                   Scoring Weight Model
                 </CardTitle>
-                <CardDescription>How different ESG factors contribute to the overall score</CardDescription>
+                <CardDescription>How different factors contribute to the overall score</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col items-center">
@@ -958,7 +952,7 @@ export default function AssessmentPage() {
                     <XAxis dataKey="category" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="yourScore" fill="#86efac" name="Your Score" />         {/* Light Green */}
+                    <Bar dataKey="yourScore" fill="#F08080" name="Your Score" />         {/* Light Green */}
                     <Bar dataKey="industryAvg" fill="#3b82f6" name="Industry Average" /> {/* Blue */}
 
 
@@ -966,7 +960,7 @@ export default function AssessmentPage() {
                 </ResponsiveContainer>
                 <div className="grid grid-cols-4 gap-4 mt-6">
                   <div className="text-center">
-                    <div className="w-4 h-4 bg-green-600  rounded mx-auto mb-1" />
+                    <div className="w-4 h-4 bg-red-400  rounded mx-auto mb-1" />
                     <div className="text-sm font-medium">Your Score</div>
                   </div>
                   <div className="text-center">
@@ -1136,278 +1130,8 @@ export default function AssessmentPage() {
 
             </Card>
           </TabsContent>
-
-          <TabsContent value="ai" className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl flex items-center">
-                  <Bot className="h-6 w-6 mr-3 text-primary" />
-                  AI Analysis & Optimization
-                </CardTitle>
-                <CardDescription>
-                  Enter your scores for each factor and let AI suggest optimization techniques.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-8">
-                  {/* Environmental */}
-                  <div>
-                    <div className="flex items-center mb-2">
-                      <h3 className="font-semibold mr-3">Environmental</h3>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                        Current Score: 80
-                      </span>
-                    </div>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={100}
-                      placeholder="Enter Target Score"
-                      value={environmental}
-                      onChange={(e) => setEnvironmental(e.target.value)}
-                      className="mb-2"
-                    />
-                    <Button
-                      size="sm"
-                      onClick={() => handleAiAnalyzeE("environmental")}
-                      disabled={isAiLoading || !environmental}
-                    >
-                      Analyze
-                    </Button>
-                    <Textarea
-                      className="mt-2"
-                      rows={4}
-                      value={aiSuggestionE}
-                      readOnly
-                      placeholder="AI optimization suggestions will appear here."
-                    />
-                    <Button
-                      size="sm"
-                      className="mt-2 bg-red-600 text-white hover:bg-green-700 transition-colors"
-                      onClick={() => handleDownload(aiSuggestionE)}
-                      disabled={!aiSuggestionE}
-                    >
-                      Download Analysis
-                    </Button>
-                  </div>
-                  {/* Social */}
-                  <div>
-                     <div className="flex items-center mb-2">
-                      <h3 className="font-semibold mr-3">Social</h3>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                        Current Score:90
-                      </span>
-                    </div>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={100}
-                      placeholder="Enter Target Score"
-                      value={social}
-                      onChange={(e) =>
-                        setSocial(e.target.value)
-                      }
-                      className="mb-2"
-                    />
-                    <Button
-                      size="sm"
-                      onClick={() => handleAiAnalyzeS("social")}
-                      disabled={isAiLoadingS || !social}
-                    >
-                      Analyze
-                    </Button>
-                    <Textarea
-                      className="mt-2"
-                      rows={4}
-                      value={aiSuggestionS}
-                      readOnly
-                      placeholder="AI optimization suggestions will appear here."
-                    />
-                    <Button
-                      size="sm"
-                      className="mt-2 bg-red-600 text-white hover:bg-green-700 transition-colors"
-                      onClick={() => handleDownloadS(aiSuggestionS)}
-                      disabled={!aiSuggestionS}
-                    >
-                      Download Analysis
-                    </Button>
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-8 mt-8">
-                  {/* Governance */}
-                  <div>
-                     <div className="flex items-center mb-2">
-                      <h3 className="font-semibold mr-3">Governance</h3>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                        Current Score: 75
-                      </span>
-                    </div>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={100}
-                      placeholder="Enter Target Score"
-                      value={governance}
-                      onChange={(e) =>
-                        setGovernance(e.target.value)
-                      }
-                      className="mb-2"
-                    />
-                    <Button
-                      size="sm"
-                      onClick={() => handleAiAnalyzeG("governance")}
-                      disabled={isAiLoadingG || !governance}
-                    >
-                      Analyze
-                    </Button>
-                    <Textarea
-                      className="mt-2"
-                      rows={4}
-                      value={aiSuggestionG}
-                      readOnly
-                      placeholder="AI optimization suggestions will appear here."
-                    />
-                    <Button
-                      size="sm"
-                      className="mt-2 bg-red-600 text-white hover:bg-green-700 transition-colors"
-                      onClick={() => handleDownloadG(aiSuggestionG)}
-                      disabled={!aiSuggestionG}
-                    >
-                      Download Analysis
-                    </Button>
-                  </div>
-                  {/* Risk Factor */}
-                  <div>
-                     <div className="flex items-center mb-2">
-                      <h3 className="font-semibold mr-3">Risk Factor</h3>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                        Current Score: 65
-                      </span>
-                    </div>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={100}
-                      placeholder="Enter Target Score"
-                      value={risk}
-                      onChange={(e) =>
-                        setRisk(e.target.value)
-                      }
-                      className="mb-2"
-                    />
-                    <Button
-                      size="sm"
-                      onClick={() => handleAiAnalyzeRi("risk")}
-                      disabled={isAiLoadingRi || !risk}
-                    >
-                      Analyze
-                    </Button>
-                    <Textarea
-                      className="mt-2"
-                      rows={4}
-                      value={aiSuggestionRi}
-                      readOnly
-                      placeholder="AI optimization suggestions will appear here."
-                    />
-                    <Button
-                      size="sm"
-                      className="mt-2 bg-red-600 text-white hover:bg-green-700 transition-colors"
-                      onClick={() => handleDownloadRi(aiSuggestionRi)}
-                      disabled={!aiSuggestionRi}
-                    >
-                      Download Analysis
-                    </Button>
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-8 mt-8">
-                  {/* Cost Efficiency */}
-                  <div>
-                     <div className="flex items-center mb-2">
-                      <h3 className="font-semibold mr-3">Cost</h3>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                        Current Score: 70
-                      </span>
-                    </div>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={100}
-                      placeholder="Enter Target Score"
-                      value={cost}
-                      onChange={(e) =>
-                        setCost(e.target.value)
-                      }
-                      className="mb-2"
-                    />
-                    <Button
-                      size="sm"
-                      onClick={() => handleAiAnalyzeC("cost")}
-                      disabled={isAiLoadingC || !cost}
-                    >
-                      Analyze
-                    </Button>
-                    <Textarea
-                      className="mt-2"
-                      rows={4}
-                      value={aiSuggestionC}
-                      readOnly
-                      placeholder="AI optimization suggestions will appear here."
-                    />
-                    <Button
-                      size="sm"
-                      className="mt-2 bg-red-600 text-white hover:bg-green-700 transition-colors"
-                      onClick={() => handleDownloadC(aiSuggestionC)}
-                      disabled={!aiSuggestionC}
-                    >
-                      Download Analysis
-                    </Button>
-                  </div>
-                  {/* Reliability */}
-                  <div>
-                     <div className="flex items-center mb-2">
-                      <h3 className="font-semibold mr-3">Reliability</h3>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                        Current Score: 80
-                      </span>
-                    </div>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={100}
-                      placeholder="Enter Target Score"
-                      value={reliability}
-                      onChange={(e) =>
-                        setReliability(e.target.value)
-                      }
-                      className="mb-2"
-                    />
-                    <Button
-                      size="sm"
-                      onClick={() => handleAiAnalyzeRe("reliability")}
-                      disabled={isAiLoadingRe || !reliability}
-                    >
-                      Analyze
-                    </Button>
-                    <Textarea
-                      className="mt-2"
-                      rows={4}
-                      value={aiSuggestionRe}
-                      readOnly
-                      placeholder="AI optimization suggestions will appear here."
-                    />
-                    <Button
-                      size="sm"
-                      className="mt-2 bg-red-600 text-white hover:bg-green-700 transition-colors"
-                      onClick={() => handleDownloadRe(aiSuggestionRe)}
-                      disabled={!aiSuggestionRe}
-                    >
-                      Download Analysis
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-
-              <Card>
+            
+           <Card className="mt-4">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
@@ -1466,6 +1190,282 @@ export default function AssessmentPage() {
                   </div>
                 </CardContent>
               </Card>
+
+          <TabsContent value="ai" className="space-y-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl flex items-center">
+                  <Bot className="h-6 w-6 mr-3 text-primary" />
+                  AI Analysis & Optimization
+                </CardTitle>
+                <CardDescription>
+                  Enter your scores for each factor and let AI suggest optimization techniques.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+               
+                <div className="grid md:grid-cols-2 gap-8 mt-8">
+                  
+                   {/* Risk Factor */}
+                  <div>
+                     <div className="flex items-center mb-2">
+                      <h3 className="font-semibold mr-3">Risk Assessment Score</h3>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                        Current Score: 65
+                      </span>
+                    </div>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      placeholder="Enter Target Score"
+                      value={risk}
+                      onChange={(e) =>
+                        setRisk(e.target.value)
+                      }
+                      className="mb-2"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleAiAnalyzeRi("risk")}
+                      disabled={isAiLoadingRi || !risk}
+                    >
+                      Analyze
+                    </Button>
+                    <Textarea
+                      className="mt-2"
+                      rows={4}
+                      value={aiSuggestionRi}
+                      readOnly
+                      placeholder="AI optimization suggestions will appear here."
+                    />
+                    <Button
+                      size="sm"
+                      className="mt-2 bg-red-600 text-white hover:bg-green-700 transition-colors"
+                      onClick={() => handleDownloadRi(aiSuggestionRi)}
+                      disabled={!aiSuggestionRi}
+                    >
+                      Download Analysis
+                    </Button>
+                  </div>
+                  
+                  {/* Governance */}
+                  <div>
+                     <div className="flex items-center mb-2">
+                      <h3 className="font-semibold mr-3">Governance Score</h3>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                        Current Score: 75
+                      </span>
+                    </div>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      placeholder="Enter Target Score"
+                      value={governance}
+                      onChange={(e) =>
+                        setGovernance(e.target.value)
+                      }
+                      className="mb-2"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleAiAnalyzeG("governance")}
+                      disabled={isAiLoadingG || !governance}
+                    >
+                      Analyze
+                    </Button>
+                    <Textarea
+                      className="mt-2"
+                      rows={4}
+                      value={aiSuggestionG}
+                      readOnly
+                      placeholder="AI optimization suggestions will appear here."
+                    />
+                    <Button
+                      size="sm"
+                      className="mt-2 bg-red-600 text-white hover:bg-green-700 transition-colors"
+                      onClick={() => handleDownloadG(aiSuggestionG)}
+                      disabled={!aiSuggestionG}
+                    >
+                      Download Analysis
+                    </Button>
+                  </div>
+                 
+                </div>
+                <div className="grid md:grid-cols-2 gap-8 mt-8">
+                  {/* Cost Efficiency */}
+                  <div>
+                     <div className="flex items-center mb-2">
+                      <h3 className="font-semibold mr-3">Cost Efficiency Score</h3>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                        Current Score: 70
+                      </span>
+                    </div>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      placeholder="Enter Target Score"
+                      value={cost}
+                      onChange={(e) =>
+                        setCost(e.target.value)
+                      }
+                      className="mb-2"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleAiAnalyzeC("cost")}
+                      disabled={isAiLoadingC || !cost}
+                    >
+                      Analyze
+                    </Button>
+                    <Textarea
+                      className="mt-2"
+                      rows={4}
+                      value={aiSuggestionC}
+                      readOnly
+                      placeholder="AI optimization suggestions will appear here."
+                    />
+                    <Button
+                      size="sm"
+                      className="mt-2 bg-red-600 text-white hover:bg-green-700 transition-colors"
+                      onClick={() => handleDownloadC(aiSuggestionC)}
+                      disabled={!aiSuggestionC}
+                    >
+                      Download Analysis
+                    </Button>
+                  </div>
+                  {/* Reliability */}
+                  <div>
+                     <div className="flex items-center mb-2">
+                      <h3 className="font-semibold mr-3">Reliability Score</h3>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                        Current Score: 80
+                      </span>
+                    </div>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      placeholder="Enter Target Score"
+                      value={reliability}
+                      onChange={(e) =>
+                        setReliability(e.target.value)
+                      }
+                      className="mb-2"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleAiAnalyzeRe("reliability")}
+                      disabled={isAiLoadingRe || !reliability}
+                    >
+                      Analyze
+                    </Button>
+                    <Textarea
+                      className="mt-2"
+                      rows={4}
+                      value={aiSuggestionRe}
+                      readOnly
+                      placeholder="AI optimization suggestions will appear here."
+                    />
+                    <Button
+                      size="sm"
+                      className="mt-2 bg-red-600 text-white hover:bg-green-700 transition-colors"
+                      onClick={() => handleDownloadRe(aiSuggestionRe)}
+                      disabled={!aiSuggestionRe}
+                    >
+                      Download Analysis
+                    </Button>
+                  </div>
+                </div>
+                 <div className="grid md:grid-cols-2 gap-8 mt-8">
+                  {/* Environmental */}
+                  <div>
+                    <div className="flex items-center mb-2">
+                      <h3 className="font-semibold mr-3">Environmental Score</h3>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                        Current Score: 80
+                      </span>
+                    </div>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      placeholder="Enter Target Score"
+                      value={environmental}
+                      onChange={(e) => setEnvironmental(e.target.value)}
+                      className="mb-2"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleAiAnalyzeE("environmental")}
+                      disabled={isAiLoading || !environmental}
+                    >
+                      Analyze
+                    </Button>
+                    <Textarea
+                      className="mt-2"
+                      rows={4}
+                      value={aiSuggestionE}
+                      readOnly
+                      placeholder="AI optimization suggestions will appear here."
+                    />
+                    <Button
+                      size="sm"
+                      className="mt-2 bg-red-600 text-white hover:bg-green-700 transition-colors"
+                      onClick={() => handleDownload(aiSuggestionE)}
+                      disabled={!aiSuggestionE}
+                    >
+                      Download Analysis
+                    </Button>
+                  </div>
+                  {/* Social */}
+                  <div>
+                     <div className="flex items-center mb-2">
+                      <h3 className="font-semibold mr-3">Social Score</h3>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                        Current Score:90
+                      </span>
+                    </div>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      placeholder="Enter Target Score"
+                      value={social}
+                      onChange={(e) =>
+                        setSocial(e.target.value)
+                      }
+                      className="mb-2"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={() => handleAiAnalyzeS("social")}
+                      disabled={isAiLoadingS || !social}
+                    >
+                      Analyze
+                    </Button>
+                    <Textarea
+                      className="mt-2"
+                      rows={4}
+                      value={aiSuggestionS}
+                      readOnly
+                      placeholder="AI optimization suggestions will appear here."
+                    />
+                    <Button
+                      size="sm"
+                      className="mt-2 bg-red-600 text-white hover:bg-green-700 transition-colors"
+                      onClick={() => handleDownloadS(aiSuggestionS)}
+                      disabled={!aiSuggestionS}
+                    >
+                      Download Analysis
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+
+             
             </Card>
           </TabsContent>
 

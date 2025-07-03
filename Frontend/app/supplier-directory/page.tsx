@@ -47,7 +47,7 @@ const esgHistoryData = [
 ]
 
 const documents = [
-  { name: "ESG Report 2023", type: "Policy", date: "2025-06-19", status: "Approved" },
+  { name: "Report 2023", type: "Policy", date: "2025-07-02", status: "Approved" },
  
 ]
 
@@ -109,27 +109,22 @@ export default function SupplierDirectory() {
       const remainingRaw = localStorage.getItem("remainingScores");
       const overall_score = localStorage.getItem("overallScore");
       setOverallScore(overall_score ? parseFloat(overall_score) : 0);
-      if (!esgCategoryRaw || !remainingRaw) {
-        alert("Score data not found in localStorage.");
+      if (!esgCategoryRaw ) {
+     
         return;
       }
   
       try {
         const parsedESG = JSON.parse(esgCategoryRaw);
-        const parsedRemaining = JSON.parse(remainingRaw);
-  
+      
         const { E_score, S_score, G_score, ESG_score } = parsedESG;
   
-        const scoreText = parsedRemaining[0]; // "Cost Efficiency: 88\nRisk Score: 12\nReliability Score: 95"
-        const scoreLines = scoreText.split("\n");
-  
-        const remainingScores: any = {};
-        scoreLines.forEach((line: string) => {
-          const [key, value] = line.split(":").map(s => s.trim());
-          if (key === "Cost Efficiency") remainingScores.Cost_Efficiency = parseFloat(value);
-          else if (key === "Risk Score") remainingScores.Risk_Score = parseFloat(value);
-          else if (key === "Reliability Score") remainingScores.Reliability_Score = parseFloat(value);
-        });
+      
+         const remainingScores: any = {
+  Cost_Efficiency: 50,
+  Risk_Score: 65,
+  Reliability_Score: 70
+};
   
         setAllScores({
           E_score,
@@ -154,10 +149,13 @@ export default function SupplierDirectory() {
     <div className="container mx-auto p-6 space-y-8">
       <div className="h-10" /> 
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-          Supplier Directory
-        </h1>
-        <p className="text-xl text-muted-foreground">Browse and manage your supplier network</p>
+        <h2 className="text-3xl sm:text-4xl font-extrabold mb-2 font-['Inter','IBM Plex Sans',sans-serif]">
+         
+          <span className="bg-gradient-to-r from-[#E2142D] via-[#2563eb] to-[#a21caf] bg-clip-text text-transparent animate-gradient-text">
+            Supplier Directory
+          </span>
+        </h2>
+        <p className="text-md text-muted-foreground">Browse and manage your supplier network</p>
       </div>
 
       {/* Filters */}
@@ -221,7 +219,7 @@ export default function SupplierDirectory() {
                 <TableHead>Supplier</TableHead>
                 <TableHead>Location</TableHead>
                 <TableHead>Category</TableHead>
-                <TableHead>ESG Score</TableHead>
+               
                 <TableHead>Overall Score</TableHead> {/* New column header */}
               
                 <TableHead>Status</TableHead>
@@ -244,9 +242,7 @@ export default function SupplierDirectory() {
                     </div>
                   </TableCell>
                   <TableCell>{supplier.category}</TableCell>
-                  <TableCell>
-                    <Badge variant={getScoreBadgeVariant(allScores.ESG_score||supplier.esgScore)}>{allScores.ESG_score}/100</Badge>
-                  </TableCell>
+                 
                   <TableCell>
                     <Badge variant="secondary">{overallScore}/100</Badge>
                   </TableCell>
@@ -277,7 +273,7 @@ export default function SupplierDirectory() {
                             <TabsTrigger value="overview">Overview</TabsTrigger>
                             <TabsTrigger value="documents">Documents</TabsTrigger>
                             <TabsTrigger value="kpis">KPIs</TabsTrigger>
-                            <TabsTrigger value="esg">ESG History</TabsTrigger>
+                            <TabsTrigger value="esg">Data History</TabsTrigger>
                           </TabsList>
 
                           <TabsContent value="overview" className="space-y-4">
@@ -313,7 +309,7 @@ export default function SupplierDirectory() {
                               <CardHeader>
                                 <CardTitle className="flex items-center space-x-2">
                                   <TrendingUp className="h-5 w-5 text-green-600" />
-                                  <span>ESG Score Trend</span>
+                                  <span>Score Trend</span>
                                 </CardTitle>
                                 <CardDescription>6-month performance history</CardDescription>
                               </CardHeader>
